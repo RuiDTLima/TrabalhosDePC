@@ -42,6 +42,8 @@
   <ItemGroup>
     <Compile Include="ExpirableLazy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SyncUtils.cs" />
+    <Compile Include="TimeOut.cs" />
     <Compile Include="TransferQueue.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace Test1 {
     [TestClass]
-    public class UnitTest1 {
+    public class TestExpirableLazy {
         private const int NTHREADS = 5;
 
         [TestMethod]

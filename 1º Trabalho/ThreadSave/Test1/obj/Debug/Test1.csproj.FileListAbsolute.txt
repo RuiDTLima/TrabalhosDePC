@@ -1,6 +1,5 @@
 D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\bin\Debug\Test1.dll
 D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\bin\Debug\Test1.pdb
-D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
 D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\bin\Debug\ThreadSave.dll
 D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\bin\Debug\ThreadSave.pdb
 D:\rui_l\Documentos\Universidade\3ºAno\1º Semestre\Programação Concorrente\Trabalhos\1º Trabalho\ThreadSave\Test1\obj\Debug\Test1.csprojResolveAssemblyReference.cache
