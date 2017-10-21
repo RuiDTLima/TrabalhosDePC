@@ -181,5 +181,75 @@ namespace Test1 {
             threads[1].Join();
             Assert.AreEqual(exceptionMessage, receivedMessage);
         }
+
+        [TestMethod]
+        /**
+         * Testa se um conjunto de threads tem o funcionamento espera na escrita e leitura de dados, com recurso ao put e ao take
+         */
+        public void TestMultiplePutTake() {
+            int numberOfThreads = 10;
+            int[] results = new int[numberOfThreads];
+            Thread[] threads = new Thread[numberOfThreads];
+
+            TransferQueue<int> transQueue = new TransferQueue<int>();
+            bool sucess = false;
+            for (int i = 0; i < numberOfThreads; ++i) {
+                threads[i] = new Thread(() => {
+                    transQueue.Put(i);
+                });
+                threads[i].Start();
+                threads[i].Join();
+            }
+
+            //Thread.Sleep(500);
+            for (int i = 0; i < numberOfThreads; ++i) {
+                threads[i] = new Thread(() => {
+                    sucess = transQueue.Take(500, out results[i]);
+                });
+                threads[i].Start();
+                threads[i].Join();
+            }
+
+            for (int i = 0; i < numberOfThreads; i++) {
+                Assert.AreEqual(i, results[i]);
+            }
+        }
+
+        [TestMethod]
+        /**
+         * Testa se um conjunto de threads tem o funcionamento espera na escrita e leitura de dados, com recurso ao transfer e ao take
+         */
+        public void TestMultipleTransferTake(){
+            int numberOfThreads = 10;
+            int[] results = new int[numberOfThreads];
+            Thread[] threads = new Thread[numberOfThreads];
+
+            TransferQueue<int> transQueue = new TransferQueue<int>();
+            bool sucess = false;
+            for (int i = 0; i < numberOfThreads; i++)
+            {
+                int li = i;
+                threads[li] = new Thread(() => {
+                    transQueue.Transfer(li, 5000);
+                });
+                threads[i].Start();
+                Thread.Sleep(100);
+            }
+            
+            for (int i = 0; i < results.Length; i++)
+            {
+                int li = i;
+                threads[li] = new Thread(() => {
+                    sucess = transQueue.Take(5000, out results[li]);
+                });
+                threads[li].Start();
+                threads[i].Join();
+            }
+
+            for (int i = 0; i < numberOfThreads; i++)
+            {
+                Assert.AreEqual(i, results[i]);
+            }
+        }
     }
 }

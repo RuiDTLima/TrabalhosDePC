@@ -95,6 +95,7 @@ namespace ThreadSave {
                     return false;
                 }
                 rmsg = writers.First.Value;
+                writers.RemoveFirst();
                 return true;
             }
         } 
