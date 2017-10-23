@@ -69,7 +69,7 @@ namespace ThreadSave {
                     Monitor.Enter(mon);
                     return;
                 }
-                catch (ThreadInterruptedException e) {
+                catch (ThreadInterruptedException) {
                     wasInterrupted = true;
                 }
             }

@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="TestExpirableLazy.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestPairing.cs" />
     <Compile Include="TestTransferQueue.cs" />
   </ItemGroup>
   <ItemGroup>

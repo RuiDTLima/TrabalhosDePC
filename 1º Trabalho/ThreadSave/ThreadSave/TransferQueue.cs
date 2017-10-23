@@ -7,8 +7,7 @@ namespace ThreadSave {
             public bool ready;
             public object thread;
 
-            public Thread(bool ready, object thread)
-            {
+            public Thread(bool ready, object thread) {
                 this.ready = ready;
                 this.thread = thread;
             }
@@ -36,6 +35,7 @@ namespace ThreadSave {
                 int time = TimeOut.EndTime(timeout);
                 int remaining = TimeOut.Remaining(time);
                 if(readers.Count != 0) {
+                    readers.First.Value.ready = true;
                     SyncUtils.Pulse(mon, readers.First.Value.thread);
                 }
 
@@ -51,7 +51,6 @@ namespace ThreadSave {
                     remaining = TimeOut.Remaining(time);
                     if (TimeOut.InvalidTime(remaining)) {
                         return !writers.Remove(msg);
-                        
                     }
                 }
             }
@@ -70,27 +69,32 @@ namespace ThreadSave {
                 int time = TimeOut.EndTime(timeout);
                 int remaining = TimeOut.Remaining(time);
 
-                while (writers.Count == 0) {
-                    Thread current = new Thread(true, this);
-                    readers.AddLast(current); // adicionar leitor actual à lista de leitores
+                Thread current = new Thread(false, this);
+                readers.AddLast(current); // adicionar leitor actual à lista de leitores
+
+                while (writers.Count == 0 && !current.ready) {
                     try {
                         SyncUtils.Wait(mon, current.thread, remaining);
                     }
                     catch (ThreadInterruptedException) {
                         readers.Remove(current); //remover da lista de leitores o leitor actual
-                        if(readers.Count != 0)
+                        if (readers.Count != 0) {
+                            readers.First.Value.ready = true;
                             SyncUtils.Pulse(mon, readers.First.Value.thread);
+                        }
                         throw;
                     }
 
                     remaining = TimeOut.Remaining(time);
                     if (TimeOut.InvalidTime(remaining)) {
+                        readers.Remove(current);
                         rmsg = default(T);
                         return false;
                     }
                 }
 
                 if (TimeOut.InvalidTime(remaining)) {
+                    readers.Remove(current);
                     rmsg = default(T);
                     return false;
                 }

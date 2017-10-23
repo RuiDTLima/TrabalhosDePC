@@ -226,8 +226,7 @@ namespace Test1 {
 
             TransferQueue<int> transQueue = new TransferQueue<int>();
             bool sucess = false;
-            for (int i = 0; i < numberOfThreads; i++)
-            {
+            for (int i = 0; i < numberOfThreads; i++) {
                 int li = i;
                 threads[li] = new Thread(() => {
                     transQueue.Transfer(li, 5000);
@@ -236,18 +235,16 @@ namespace Test1 {
                 Thread.Sleep(100);
             }
             
-            for (int i = 0; i < results.Length; i++)
-            {
+            for (int i = 0; i < results.Length; i++) {
                 int li = i;
                 threads[li] = new Thread(() => {
                     sucess = transQueue.Take(5000, out results[li]);
                 });
-                threads[li].Start();
+                threads[i].Start();
                 threads[i].Join();
             }
 
-            for (int i = 0; i < numberOfThreads; i++)
-            {
+            for (int i = 0; i < numberOfThreads; i++) {
                 Assert.AreEqual(i, results[i]);
             }
         }
