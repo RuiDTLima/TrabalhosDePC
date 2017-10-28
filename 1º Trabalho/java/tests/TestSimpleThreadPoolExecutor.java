@@ -9,7 +9,7 @@ public class TestSimpleThreadPoolExecutor {
     /**
      * Testa se o threadPool executa como esperado quando é passado apenas um comando para executar
      */
-    public void oneElementThreadPool(){
+    public void oneElementThreadPool() throws InterruptedException {
         SimpleThreadPoolExecutor threadPool = new SimpleThreadPoolExecutor(1, 500);
         try {
             Assert.assertTrue(threadPool.execute(() -> {
@@ -20,6 +20,7 @@ public class TestSimpleThreadPoolExecutor {
             Assert.assertTrue(false);
             System.out.println("Erro na execução");
         }
+        Thread.sleep(10);
 
         threadPool.shutdown();
 
@@ -36,8 +37,8 @@ public class TestSimpleThreadPoolExecutor {
      * Testa se o shutdown do threadPool executa tal como esperado. Quando se executa o shutdown, qualquer tentativa de
      * colocar um novo comando em execução irá lançar a exceção RejectedExecutionException
      */
-    public void secondElementFailingThreadPool(){
-        SimpleThreadPoolExecutor threadPool = new SimpleThreadPoolExecutor(1, 500);
+    public void secondElementFailingThreadPool() throws InterruptedException {
+        SimpleThreadPoolExecutor threadPool = new SimpleThreadPoolExecutor(1, 100);
 
         try {
             Assert.assertTrue(threadPool.execute(() -> {
@@ -49,6 +50,7 @@ public class TestSimpleThreadPoolExecutor {
             System.out.println("Erro na execução");
         }
 
+        Thread.sleep(10);
         threadPool.shutdown();
 
         try {
@@ -60,8 +62,9 @@ public class TestSimpleThreadPoolExecutor {
             Assert.assertTrue(false);
         }
 
+        Thread.sleep(10);
         try {
-            Assert.assertTrue(threadPool.awaitTermination(0));
+            Assert.assertTrue(threadPool.awaitTermination(100));
         } catch (InterruptedException e) {
             Assert.assertTrue(false);
             e.printStackTrace();
@@ -98,45 +101,7 @@ public class TestSimpleThreadPoolExecutor {
         }
 
         termination.set(true);
-        threadPool.shutdown();
-
-        try {
-            Assert.assertTrue(threadPool.awaitTermination(500));
-        } catch (InterruptedException e) {
-            Assert.assertTrue(false);
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    /**
-     * Verifica se a thread termina após a ultrapassagem do keepAliveTime.
-     */
-    public void seeIfThreadIsFinishAfterKeepAliveTimeFinish(){
-        SimpleThreadPoolExecutor threadPool = new SimpleThreadPoolExecutor(5, 10);
-        AtomicBoolean termination = new AtomicBoolean(false);
-
-        try {
-            Assert.assertTrue(threadPool.execute(() -> System.out.println("Executou primeira thread"), 500));
-        } catch (InterruptedException e) {
-            Assert.assertTrue(false);
-            e.printStackTrace();
-        }
-
-        Assert.assertEquals(0,  threadPool.getActiveThreads());
-
-        try {
-            Assert.assertTrue(threadPool.execute(() -> {
-                while (!termination.get());
-            }, 500));
-        } catch (InterruptedException e) {
-            Assert.assertTrue(false);
-            e.printStackTrace();
-        }
-
-        Assert.assertNotEquals(0, threadPool.getActiveThreads());
-        termination.set(true);
-
+        Thread.sleep(100);
         threadPool.shutdown();
 
         try {
@@ -171,6 +136,7 @@ public class TestSimpleThreadPoolExecutor {
                 }
             });
             threads[i].start();
+            Thread.sleep(10);
         }
 
         termination.set(true);

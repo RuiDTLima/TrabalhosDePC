@@ -2,11 +2,11 @@
 
 namespace ThreadSave {
     class TimeOut {
-        public static bool NotTime(int timeout) {
+        public static bool NoWait(int timeout) {
             return timeout == 0;
         }
 
-        public static int EndTime(int timeout) {
+        public static int Start(int timeout) {
             return Environment.TickCount + timeout;
         }
 
@@ -14,7 +14,7 @@ namespace ThreadSave {
             return time - Environment.TickCount;
         }
 
-        public static bool InvalidTime(int remaining) {
+        public static bool IsTimeout(int remaining) {
             return remaining <= 0;
         }
     }

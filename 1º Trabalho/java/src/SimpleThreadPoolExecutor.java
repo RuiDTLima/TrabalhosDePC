@@ -1,106 +1,122 @@
 import java.util.LinkedList;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SimpleThreadPoolExecutor {
-    private final Object mon = new Object();
-    private final LinkedList<Runnable> work = new LinkedList<>();
-    private final int maxPoolSize;
-    private final int keepAliveTime;
-    private AtomicInteger activeThreads = new AtomicInteger(0);
-    private AtomicBoolean shuttingDown = new AtomicBoolean(false);
-
-    public int getActiveThreads() {
-        return activeThreads.get();
-    }
+    private final ReentrantLock lock;
+    private final LinkedList<WorkItem> work = new LinkedList<>();
+    private final LinkedList<WorkerThread> threads = new LinkedList<>();
+    private final Condition waitTermination, waitThread;    // Condição para bloquear as threads na espera da terminação do ThreadPool ou quando uma thread está à espera de trabalho
+    private final int maxPoolSize, keepAliveTime;
+    private int workingThreads,waitingTerminationThreads;
+    private boolean isShuttingDown;
 
     public SimpleThreadPoolExecutor(int maxPoolSize, int keepAliveTime){
         this.maxPoolSize = maxPoolSize;
         this.keepAliveTime = keepAliveTime;
+        lock = new ReentrantLock();
+        waitTermination = lock.newCondition();
+        waitThread = lock.newCondition();
+        waitingTerminationThreads = 0;
     }
 
     /**
-     * Inicialmente é verificado se o pool não está a ser encerrado para poder prosseguir com a sua execução normal.
-     * Caso o número total de threads actualmente em trabalho ou à procura de trabalho seja menor que o tamanho máximo
-     * de threads que o pool pode ter, é criada uma nova thread e esta é colocada à procura de trabalho através do
-     * método runWork, o trabalho fica depois à espera de ser executado, antes de que o timeout termine, ou que a espera
-     * seja interrumpida
-     * @param command o método a ser executado pela thread, o trabalho
-     * @param timeout o tempo máximo que o trabalho fica à espera que alguma thread o "atenda"
+     * Caso o ThreadPool esteja em shutdown lança a excepção RejectedExecutionException, uma vez que o pedido de
+     * realização de trabalho não será satisfeito. Depois verifica se existe alguma thread à espera de trabalho, em caso
+     * afirmativo é lhe dado o trabalho acabado de receber e é acordada de forma a executar o trabalho. Por outro lado
+     * caso o número de threads a trabalhar ou à procura de trabalho seja inferior ao tamanho máximo do threadPool é
+     * criada uma nova thread que é colocada a executar o trabalho recebido como parâmetro. Caso contrário é criado um
+     * novo elemento trabalho que é colocado na lista de trabalho e é colocado em espera até alguma thread estar
+     * disponivel para o executar ou passar o timeout
+     * @param command // o comando a ser executado
+     * @param timeout // o tempo máximo que o trabalho pode estar bloqueado
      * @return
      * @throws InterruptedException
-     * @throws RejectedExecutionException
      */
-    public boolean execute(Runnable command, int timeout) throws InterruptedException, RejectedExecutionException{
-        synchronized (mon){
-            if (shuttingDown.get())
+    public boolean execute(Runnable command, int timeout) throws InterruptedException{
+        lock.lock();
+        try {
+            if (isShuttingDown)
                 throw new RejectedExecutionException();
-            if (activeThreads.get() < maxPoolSize){
-                Thread thread = new Thread(this::runWork);
-                thread.start();
-                activeThreads.incrementAndGet();
+
+            if(!threads.isEmpty()){
+                WorkerThread worker = threads.removeFirst();
+                worker.setCommand(command);
+                worker.ready = true;
+                waitThread.signal();
+                return true;
             }
 
-            work.add(command);
+            if (workingThreads < maxPoolSize){
+                WorkerThread worker = new WorkerThread(command);
+                worker.start();
+                workingThreads++;
+                return true;
+            }
+
+            WorkItem workItem = new WorkItem(command, lock.newCondition());
+            work.add(workItem);
+
             long t = Timeouts.start(timeout);
             long remaining = Timeouts.remaining(t);
-            while(true){
+            while (true){
                 try {
-                    mon.wait(remaining);
+                    workItem.condition.await(remaining, TimeUnit.MILLISECONDS);
                 }catch (InterruptedException e){
-                    work.remove(command);
+                    if (workItem.isExecuting) {
+                        Thread.currentThread().interrupt();
+                        return true;
+                    }
+                    work.remove(workItem);
                     throw e;
                 }
 
-                if (!work.contains(command))
+                if (workItem.isExecuting)
                     return true;
 
                 remaining = Timeouts.remaining(t);
                 if (Timeouts.isTimeout(remaining)) {
-                    work.remove(command);
+                    work.remove(workItem);
                     return false;
                 }
             }
+        }finally {
+            lock.unlock();
         }
     }
 
     /**
-     * Fica num
+     * O ThreadPool é colocado em modo shutdown e caso já exista algumas threads bloqueada à espera que o pool termine
+     * estas são acordadas, uma vez que houve uma alteração do estado do pool
      */
-    private void runWork() {
-        long t = Timeouts.start(keepAliveTime);
-        long remaining = Timeouts.remaining(t);
-        while (true){
-            if (Timeouts.isTimeout(remaining)){
-                activeThreads.decrementAndGet();
-                return;
-            }
-            Runnable runnable = getThreadWork();
-            if (runnable != null){
-                runnable.run();
-                t = Timeouts.start(keepAliveTime);
-            }
-            remaining = Timeouts.remaining(t);
-        }
-    }
-
-    private Runnable getThreadWork() {
-        synchronized (mon) {
-            if (work.size() != 0) {
-                return work.removeFirst();
-            }
-            return null;
-        }
-    }
-
     public void shutdown(){
-        shuttingDown.set(true);
+        lock.lock();
+        try {
+            isShuttingDown = true;
+            if (waitingTerminationThreads > 0) {
+                waitingTerminationThreads = 0;
+                waitTermination.signalAll();
+            }
+        }finally {
+            lock.unlock();
+        }
     }
 
-    public boolean awaitTermination(int timeout) throws InterruptedException {
-        synchronized (mon){
-            if (activeThreads.get() == 0)
+    /**
+     * Fica à espera da terminação do pool antes que o timeout seja ultrapassado. Caso não existam threads a trabalhar e
+     * o pool esteja a ser encerrado, retorna true porque o pool foi encerrado com sucesso. Caso contrário verifica se
+     * Fica bloqueado à espera que todas as threads actualmente em trabalho terminem a sua execução, caso isso aconteça
+     * dentro do timeout retorna true, caso contrário retorna false
+     * @param timeout
+     * @return
+     * @throws InterruptedException
+     */
+    public boolean awaitTermination(int timeout) throws InterruptedException{
+        lock.lock();
+        try {
+            if (workingThreads == 0 && isShuttingDown)
                 return true;
 
             if (Timeouts.noWait(timeout))
@@ -108,15 +124,116 @@ public class SimpleThreadPoolExecutor {
 
             long t = Timeouts.start(timeout);
             long remaining = Timeouts.remaining(t);
+            waitingTerminationThreads++;
             while(true){
-                mon.wait(remaining);
-
-                if (activeThreads.get() == 0)
+                try {
+                    waitTermination.await(remaining, TimeUnit.MILLISECONDS);
+                }catch (InterruptedException e){
+                    waitingTerminationThreads--;
+                    if (workingThreads == 0 && isShuttingDown)
+                        return true;
+                    throw e;
+                }
+                if (workingThreads == 0 && isShuttingDown)
                     return true;
-
                 remaining = Timeouts.remaining(t);
-                if (Timeouts.isTimeout(remaining))
+                if (Timeouts.isTimeout(remaining)){
+                    waitingTerminationThreads--;
                     return false;
+                }
+            }
+        }finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Classe para reprensentar o trabalho a ser realizado
+     */
+    private class WorkItem{
+        public final Condition condition;
+        private final Runnable work;
+        private boolean isExecuting;
+
+        private WorkItem(Runnable work, Condition condition) {
+            this.work = work;
+            this.condition = condition;
+        }
+
+        public Runnable getWork(){
+            return work;
+        }
+    }
+
+    /**
+     * Classe para representar as Threads usadas pelo ThreadPool para realizar trabalho
+     */
+    private class WorkerThread extends Thread{
+        private Runnable command;
+        public boolean ready;
+        private long timeLiving = TimeUnit.MILLISECONDS.toNanos(keepAliveTime);
+
+        public void setCommand(Runnable command){
+            this.command = command;
+        }
+
+        private WorkerThread(Runnable command){
+            this.command = command;
+            ready = true;
+        }
+
+        @Override
+        public void run() {
+            do{
+                command.run();
+            }while(findWork());
+        }
+
+        /**
+         * Procura trabalho durante o tempo em que pode estar viva. Caso exista trabalho disponivel a thread actual
+         * passa a executá-lo e sinaliza a condição do trabalho para ele sair da espera. Caso contrário e caso o
+         * ThreadPool esteja em shutdown é returnado false de modo a parar a execução da thread. Se nenhuma dessas
+         * situações se verificar a thread é colocada em espera durante o tempo que cada thread pode estar sem trabalho
+         * @return true caso encontre trabalho para executar, false caso seja para terminar a execução da thread
+         */
+        private boolean findWork() {
+            lock.lock();
+            try {
+                if (!work.isEmpty()){
+                    WorkItem current = work.removeFirst();
+                    command = current.getWork();
+                    current.isExecuting = true;
+                    current.condition.signal();
+                    return true;
+                }
+
+                if (isShuttingDown)
+                    return false;
+
+                ready = false;
+                threads.add(this);
+                while (true){
+                    try {
+                        timeLiving = waitThread.awaitNanos(timeLiving);
+                    } catch (InterruptedException e) {
+                        if (ready)
+                            waitThread.signal();
+                    }
+                    if (ready) {
+                        return true;
+                    }
+                    if (Timeouts.isTimeout(timeLiving)){
+                        workingThreads--;
+                        threads.remove(this);
+                        if (workingThreads == 0 && isShuttingDown) {
+                            waitingTerminationThreads = 0;
+                            waitTermination.signalAll();
+                        }
+                        return false;
+                    }
+                }
+            }finally {
+                lock.unlock();
             }
         }
     }

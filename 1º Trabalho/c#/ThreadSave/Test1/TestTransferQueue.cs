@@ -27,6 +27,8 @@ namespace Test1 {
 
             threads[0].Start();
             threads[1].Start();
+            Thread.Sleep(200);
+            threads[1].Join();
             threads[0].Join();
             Assert.IsTrue(sucess);
             Assert.AreEqual(sendMessage, receivedMessage);
@@ -121,7 +123,6 @@ namespace Test1 {
 
             TransferQueue<String> transQueue = new TransferQueue<string>();
             String receivedMessage = "";
-            String sendMessage = "Hello World of Threads";
             String exceptionMessage = "Exception Occured";
             bool sucess = true;
             threads[0] = new Thread(() => {
@@ -133,13 +134,7 @@ namespace Test1 {
                 }
             });
 
-            threads[1] = new Thread(() => {
-                transQueue.Put(sendMessage);
-            });
-
             threads[0].Start();
-            Thread.Sleep(500);
-            threads[1].Start();
             threads[0].Interrupt();
             threads[0].Join();
             Assert.AreEqual(exceptionMessage, receivedMessage);
@@ -156,15 +151,6 @@ namespace Test1 {
             String receivedMessage = "";
             String sendMessage = "Hello World of Threads";
             String exceptionMessage = "Exception Occured";
-            bool sucess = false;
-            threads[0] = new Thread(() => {
-                try {
-                    sucess = transQueue.Take(1000, out receivedMessage);
-                }
-                catch (ThreadInterruptedException) {
-                    Assert.IsTrue(true);
-                }
-            });
 
             threads[1] = new Thread(() => {
                 try {
@@ -176,7 +162,6 @@ namespace Test1 {
             });
 
             threads[1].Start();
-            threads[0].Start();
             threads[1].Interrupt();
             threads[1].Join();
             Assert.AreEqual(exceptionMessage, receivedMessage);
@@ -201,7 +186,7 @@ namespace Test1 {
                 threads[i].Join();
             }
 
-            //Thread.Sleep(500);
+            Thread.Sleep(500);
             for (int i = 0; i < numberOfThreads; ++i) {
                 threads[i] = new Thread(() => {
                     sucess = transQueue.Take(500, out results[i]);

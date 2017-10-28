@@ -23,8 +23,9 @@ namespace Test1 {
             });
             
             threads[0].Start();
+            Thread.Sleep(100);
             threads[1].Start();
-            threads[0].Join();
+            Thread.Sleep(100);
 
             Assert.AreEqual(resultString.Item1, resultInt.Item1);
             Assert.AreEqual(resultString.Item2, resultInt.Item2);
