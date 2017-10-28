@@ -207,8 +207,14 @@ public class SimpleThreadPoolExecutor {
                     return true;
                 }
 
-                if (isShuttingDown)
+                if (isShuttingDown) {
+                    workingThreads--;
+                    if (workingThreads == 0 && isShuttingDown) {
+                        waitingTerminationThreads = 0;
+                        waitTermination.signalAll();
+                    }
                     return false;
+                }
 
                 ready = false;
                 threads.add(this);
