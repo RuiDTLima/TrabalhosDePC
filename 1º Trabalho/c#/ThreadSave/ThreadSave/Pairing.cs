@@ -38,7 +38,6 @@ namespace ThreadSave {
 
                 while (true) {
                     try {
-                        //current.ready = false;
                         SyncUtils.Wait(mon, current.thread, remaining);
                     }catch (ThreadInterruptedException) {
                         if (current.ready) {

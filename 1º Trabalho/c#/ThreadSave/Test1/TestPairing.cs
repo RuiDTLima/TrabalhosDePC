@@ -33,32 +33,6 @@ namespace Test1 {
             Assert.AreEqual(resultString.Item2, sendNumber);
         }
 
-        /* [TestMethod]
-         public void TestWrite1TupleSameTypes() {
-             Pairing<string, string> pairing = new Pairing<string, string>();
-             Thread[] threads = new Thread[2];
-             string firstMessage = "Hello World!";
-             string secondMessage = "It's 2017";
-             Tuple<string, string> resultString = null;    // irá receber o resultado da chamada ao provide que recebe uma String
-             Tuple<string, string> resultInt = null;    // irá receber o resultado da chamada ao provide que recebe uma int
-             threads[0] = new Thread(() => {
-                 resultString = pairing.Provide(firstMessage, 5000);
-             });
-
-             threads[1] = new Thread(() => {
-                 resultInt = pairing.Provide(secondMessage, 5000);
-             });
-
-             threads[0].Start();
-             threads[1].Start();
-             threads[0].Join();
-
-             Assert.AreEqual(resultString.Item1, resultInt.Item1);
-             Assert.AreEqual(resultString.Item2, resultInt.Item2);
-             Assert.AreEqual(resultString.Item1, sendMessage);
-             Assert.AreEqual(resultString.Item2, sendNumber);
-         }*/
-
         [TestMethod]
         public void TestTimeoutExceptionOnFirstThread() {
             Pairing<String, int> pairing = new Pairing<string, int>();
@@ -146,7 +120,6 @@ namespace Test1 {
                 });
                 threads[li + 5].Start();
                 Thread.Sleep(100);
-                //threads[li + 5].Join();
             }
 
             for (int i = 0; i < resultString.Length; i++) {

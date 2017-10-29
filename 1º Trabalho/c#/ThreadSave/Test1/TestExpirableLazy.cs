@@ -14,19 +14,16 @@ namespace Test1 {
             object[] privateValues = new object[NTHREADS];
             int providedValue = 0;
             ExpirableLazy<object> expLazy = new ExpirableLazy<object>(() => providedValue++, TimeSpan.FromMilliseconds(500));
-            for (int i = 0; i < NTHREADS; i++)
-            {
+            for (int i = 0; i < NTHREADS; i++) {
                 int li = i;
-                threads[i] = new Thread(() =>
-                {
+                threads[i] = new Thread(() => {
                     privateValues[li] = expLazy.Value;
                 });
                 Thread.Sleep(1000);
                 threads[i].Start();
             }
 
-            for (int i = 0; i < NTHREADS; i++)
-            {
+            for (int i = 0; i < NTHREADS; i++) {
                 threads[i].Join();
                 Assert.AreEqual(i, privateValues[i]);
             }
