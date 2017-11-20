@@ -2,12 +2,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ConcurrentQueue<T> {
     private class Node<T> {
-        private T value;
-        private AtomicReference<Node<T>> next;
+        public T value;
+        public AtomicReference<Node<T>> next;
 
         public Node(T value) {
             this.value = value;
-            this.next = new AtomicReference<>(null);
+            next = new AtomicReference<>(null);
         }
     }
 
@@ -49,12 +49,13 @@ public class ConcurrentQueue<T> {
                 return null;
             Node<T> observedHead = head.get();
             Node<T> node = observedHead.next.get();
-            if(node != null)
-                if(head.compareAndSet(observedHead, node)) {
+            if(node != null) {
+                if (head.compareAndSet(observedHead, node)) {
                     T value = node.value;
                     node.value = null;
                     return value;
                 }
+            }
         }
     }
 

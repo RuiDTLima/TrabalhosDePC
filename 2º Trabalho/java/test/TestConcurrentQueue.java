@@ -18,7 +18,7 @@ public class TestConcurrentQueue {
     }
 
     @Test
-    public void TestTwoElementPutAndTryTake(){
+    public void testTwoElementPutAndTryTake(){
         ConcurrentQueue<String> queue = new ConcurrentQueue<>();
         String firstMessageSend = "Hello World";
         String secondMessageSend = "ISEL";
@@ -41,7 +41,7 @@ public class TestConcurrentQueue {
     }
 
     @Test
-    public void TestMultiplePutAndTryTake(){
+    public void testMultiplePutAndTryTake(){
         ConcurrentQueue<String> queue = new ConcurrentQueue<>();
         String[] messages = {"Hello World", "Hello ISEL", "This is Threads", "This is PC", "Windows"};
         String[] results = new String[messages.length];
@@ -107,15 +107,5 @@ public class TestConcurrentQueue {
         }
 
         Assert.assertTrue(queue.isEmpty());
-    }
-
-    @Test
-    public void testInterruptedPut(){
-
-    }
-
-    @Test
-    public void testInterruptesTryTake(){
-
     }
 }

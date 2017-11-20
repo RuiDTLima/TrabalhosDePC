@@ -8,7 +8,7 @@ public class SimpleThreadPoolExecutor {
     private final ReentrantLock lock;
     private final LinkedList<WorkItem> work = new LinkedList<>();
     private final LinkedList<WorkerThread> threads = new LinkedList<>();
-    private final Condition waitTermination, waitThread;    // Condição para bloquear as threads na espera da terminação do ThreadPool ou quando uma thread está à espera de trabalho
+    private final Condition waitTermination;    // Condição para bloquear as threads na espera da terminação do ThreadPool ou quando uma thread está à espera de trabalho
     private final int maxPoolSize, keepAliveTime;
     private int workingThreads,waitingTerminationThreads;
     private boolean isShuttingDown;
@@ -18,7 +18,6 @@ public class SimpleThreadPoolExecutor {
         this.keepAliveTime = keepAliveTime;
         lock = new ReentrantLock();
         waitTermination = lock.newCondition();
-        waitThread = lock.newCondition();
         waitingTerminationThreads = 0;
     }
 
@@ -42,10 +41,10 @@ public class SimpleThreadPoolExecutor {
                 throw new RejectedExecutionException();
 
             if(!threads.isEmpty()){
-                WorkerThread worker = threads.removeFirst();
+                WorkerThread worker = threads.removeLast();
                 worker.setCommand(command);
                 worker.ready = true;
-                waitThread.signal();
+                worker.waitThread.signal();
                 return true;
             }
 
@@ -170,6 +169,7 @@ public class SimpleThreadPoolExecutor {
      */
     private class WorkerThread extends Thread{
         private Runnable command;
+        private Condition waitThread;
         public boolean ready;
         private long timeLiving = TimeUnit.MILLISECONDS.toNanos(keepAliveTime);
 
@@ -179,6 +179,7 @@ public class SimpleThreadPoolExecutor {
 
         private WorkerThread(Runnable command){
             this.command = command;
+            waitThread = lock.newCondition();
             ready = true;
         }
 
@@ -222,8 +223,7 @@ public class SimpleThreadPoolExecutor {
                     try {
                         timeLiving = waitThread.awaitNanos(timeLiving);
                     } catch (InterruptedException e) {
-                        if (ready)
-                            waitThread.signal();
+                        ;//ignored
                     }
                     if (ready) {
                         return true;
