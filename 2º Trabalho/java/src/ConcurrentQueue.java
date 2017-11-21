@@ -44,12 +44,26 @@ public class ConcurrentQueue<T> {
      * @return
      */
     public T tryTake(){
-        while (true) {//check tail
-            if (isEmpty())
+        while (true) {
+            Node<T> observedHead = head.get();
+            Node<T> node = observedHead.next.get();
+            if (node == null)
+                return null;
+            if (head.compareAndSet(observedHead, node)) {
+                T value = node.value;
+                node.value = null;
+                return value;
+            }
+        }
+    }
+
+    /*public T tryTake(){
+        while (true) {
+            if (head.get().next.get() == null)
                 return null;
             Node<T> observedHead = head.get();
             Node<T> node = observedHead.next.get();
-            if(node != null) {
+            if (node != null) {
                 if (head.compareAndSet(observedHead, node)) {
                     T value = node.value;
                     node.value = null;
@@ -57,7 +71,7 @@ public class ConcurrentQueue<T> {
                 }
             }
         }
-    }
+    }*/
 
     /**
      * indica se a fila está vazia

@@ -44,7 +44,7 @@ namespace ThreadSave {
 
         public T TryTake() {
             while (true) {
-                if (IsEmpty())
+                if (head.next == null)
                     return default(T);
                 Node<T> observedHead = Interlocked.Exchange(ref head, head);
                 Node<T> node = observedHead.next;
@@ -60,6 +60,16 @@ namespace ThreadSave {
 
         public bool IsEmpty() {
             return head.next == null;
+        }
+
+        public T Take()
+        {
+            T v;
+            while((v = TryTake()) == null)
+            {
+                Thread.Sleep(0);
+            }
+            return v;
         }
     }
 }

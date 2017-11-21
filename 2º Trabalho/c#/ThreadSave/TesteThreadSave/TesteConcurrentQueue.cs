@@ -5,7 +5,7 @@ using System.Threading;
 
 namespace TesteThreadSave {
     [TestClass]
-    public class UnitTest1 {
+    public class TesteConcurrentQueue {
         [TestMethod]
         public void TestOneElementPutAndTryTake() {
             ConcurrentQueue<String> queue = new ConcurrentQueue<string>();
