@@ -1,12 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a0a58352-fd07-460a-95ce-77c9a5f6d086" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/java/ConcurrentQueue.class" afterPath="$PROJECT_DIR$/out/production/java/ConcurrentQueue.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/test/java/TestConcurrentQueue.class" afterPath="$PROJECT_DIR$/out/test/java/TestConcurrentQueue.class" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ConcurrentQueue.java" afterPath="$PROJECT_DIR$/src/ConcurrentQueue.java" />
-    </list>
+    <list default="true" id="a0a58352-fd07-460a-95ce-77c9a5f6d086" name="Default" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -79,7 +74,7 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="2192" />
     <option name="y" value="-22" />
     <option name="width" value="625" />
@@ -395,8 +390,7 @@
     </history-entry>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1912" y="-8" width="1376" height="744" extended-state="7" />
-    <editor active="true" />
+    <frame x="1912" y="-8" width="1376" height="744" extended-state="6" />
     <layout>
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />

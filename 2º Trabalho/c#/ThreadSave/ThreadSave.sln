@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TesteThreadSave", "TesteThr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassEngCarlosMartins", "Teste\ClassEngCarlosMartins.csproj", "{E79D13D1-A030-471D-82B1-338F0C6BD42B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TesteTempos", "TesteTempos\TesteTempos.csproj", "{F3676C30-7BFE-4B4F-A338-63918E35AD00}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{E79D13D1-A030-471D-82B1-338F0C6BD42B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E79D13D1-A030-471D-82B1-338F0C6BD42B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E79D13D1-A030-471D-82B1-338F0C6BD42B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3676C30-7BFE-4B4F-A338-63918E35AD00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3676C30-7BFE-4B4F-A338-63918E35AD00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3676C30-7BFE-4B4F-A338-63918E35AD00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3676C30-7BFE-4B4F-A338-63918E35AD00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,8 +3,8 @@ using System.Threading;
 
 namespace ThreadSave {
     public class UnsafeRefCountedHolder<T> where T : class  {
-        private T value;
-        private int refCount;
+        /*private volatile T value;
+        private volatile int refCount;
 
         public UnsafeRefCountedHolder(T v) {
              value = v;
@@ -12,21 +12,29 @@ namespace ThreadSave {
         }
 
         public void AddRef() {
-            if (refCount == 0)
-                throw new InvalidOperationException();
-            Interlocked.Increment(ref refCount);
+            int auxRefCount;
+            do
+            {
+                auxRefCount = refCount;
+                if (refCount == 0)
+                    throw new InvalidOperationException();
+            } while(Interlocked.CompareExchange(ref refCount, auxRefCount + 1, auxRefCount) != auxRefCount); 
         }
 
         public void ReleaseRef() {
-            if (refCount == 0)
-                throw new InvalidOperationException();
-            if(Interlocked.Decrement(ref refCount) == 0)
-            {
-                IDisposable disposable = value as IDisposable;
-                value = null;
-                if (disposable != null)
-                    disposable.Dispose();
-            }
+            int auxRefCount;
+            do {
+                auxRefCount = refCount;
+                if (refCount == 0)
+                    throw new InvalidOperationException();
+                if (Interlocked.CompareExchange(ref refCount, auxRefCount - 1, auxRefCount) == 0) {
+                    IDisposable disposable = value as IDisposable;
+                    value = null;
+                    if (disposable != null)
+                        disposable.Dispose();
+                    return;
+                }
+            } while (true);
         }
 
         public T Value {
@@ -35,8 +43,8 @@ namespace ThreadSave {
                     throw new InvalidOperationException();
                 return value;
             }
-        }
-/*
+        }*/
+
         private T value;
         private int refCount;
         public UnsafeRefCountedHolder(T v) {
@@ -67,6 +75,6 @@ namespace ThreadSave {
                     throw new InvalidOperationException();
                 return value;
             }
-        }*/
+        }
     }
 }

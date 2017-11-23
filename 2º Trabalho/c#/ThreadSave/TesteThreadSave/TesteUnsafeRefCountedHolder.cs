@@ -3,46 +3,51 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ThreadSave;
 using System.Threading;
 
-namespace TesteThreadSave
-{
+namespace TesteThreadSave {
     [TestClass]
-    public class TesteUnsafeRefCountedHolder
-    {
+    public class TesteUnsafeRefCountedHolder {
         [TestMethod]
         public void MultiThreadAdds() {
             UnsafeRefCountedHolder<String> holder = new UnsafeRefCountedHolder<string>("Hello World");
-            Thread[] threads = new Thread[10];
+            Thread[] addThreads = new Thread[10];
+            Thread[] releaseThreads = new Thread[11];
 
-            for (int i = 0; i < threads.Length; i++) {
-                threads[i] = new Thread(() => {
+            for (int i = 0; i < addThreads.Length; i++) {
+                addThreads[i] = new Thread(() => {
                     holder.AddRef();
                 });
-                threads[i].Start();
             }
 
-            for (int i = 0; i < threads.Length; i++)
-            {
-                threads[i].Join();
+            for (int i = 0; i < releaseThreads.Length; i++) {
+                releaseThreads[i] = new Thread(() => {
+                    holder.ReleaseRef();
+                });
             }
 
-            for (int i = 0; i < threads.Length; i++)
-            {
-                holder.ReleaseRef();
+            for (int i = 0; i < addThreads.Length; i++) {
+                addThreads[i].Start();
+                Thread.Sleep(100);
+                releaseThreads[i].Start();
             }
 
-            //holder.ReleaseRef();
-            String result;
-            try
-            {
+            releaseThreads[10].Start();
+
+            for (int i = 0; i < addThreads.Length; i++) {
+                addThreads[i].Join();
+                releaseThreads[i].Join();
+            }
+
+            releaseThreads[10].Join();
+
+            String result = null;
+            try {
                 result = holder.Value;
             }
-            catch (InvalidOperationException)
-            {
+            catch (InvalidOperationException) {
                 Assert.IsTrue(true);
-                return;
             }
 
-            Assert.AreEqual("Hello World", result);
+            Assert.AreNotEqual("Hello World", result);
         }
     }
 }
