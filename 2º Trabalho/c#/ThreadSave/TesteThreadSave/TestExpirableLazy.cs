@@ -70,11 +70,11 @@ namespace Test1 {
                 threads[i].Join();
             }
 
-            Assert.AreEqual(privateValues[0], 0);
-            Assert.AreEqual(privateValues[1], 0);
-            Assert.AreEqual(privateValues[2], 1);
-            Assert.AreEqual(privateValues[3], 2);
-            Assert.AreEqual(privateValues[4], 2);
+            Assert.AreEqual(0, privateValues[0]);
+            Assert.AreEqual(0, privateValues[1]);
+            Assert.AreEqual(1, privateValues[2]);
+            Assert.AreEqual(2, privateValues[3]);
+            Assert.AreEqual(2, privateValues[4]);
         }
 
         [TestMethod]
