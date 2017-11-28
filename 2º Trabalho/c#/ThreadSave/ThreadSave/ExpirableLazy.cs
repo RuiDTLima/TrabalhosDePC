@@ -48,24 +48,23 @@ namespace ThreadSave {
                     return returnValue.value;
                 if (returnValue != busyObject) {
                     lock (mon) {
+                        waiters++;
                         do {
                             if (TryAcquire(out returnValue)) {
+                                waiters--;
                                 if (returnValue == busyObject)
                                     break;
                                 else
                                     return returnValue.value;
                             }
                             try {
-                                waiters++;
                                 Monitor.Wait(mon);
                             }
                             catch (ThreadInterruptedException) {
+                                waiters--;
                                 if (waiters > 0 && (valueObject == null || (valueObject != busyObject && DateTime.UtcNow.CompareTo(valueObject.validUntil) > 0)))
                                     Monitor.Pulse(mon);
                                 throw;
-                            }
-                            finally {
-                                waiters--;
                             }
                         } while (true);
                     }
