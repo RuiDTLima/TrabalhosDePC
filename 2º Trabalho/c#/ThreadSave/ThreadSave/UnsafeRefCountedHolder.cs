@@ -26,7 +26,7 @@ namespace ThreadSave {
                 auxRefCount = refCount;
                 if (auxRefCount == 0)
                     throw new InvalidOperationException();
-            } while(Interlocked.CompareExchange(ref refCount, auxRefCount + 1, auxRefCount) != auxRefCount); 
+            } while (Interlocked.CompareExchange(ref refCount, auxRefCount + 1, auxRefCount) != auxRefCount);
         }
 
         /**
@@ -34,17 +34,19 @@ namespace ThreadSave {
          *  perda de actualizações. Caso após a remoção o número de referências seja 0 é eliminado o valor
          *  através do Dispose.
          */
-        public void ReleaseRef() {
-            int auxRefCount;
+         public void ReleaseRef() {
+            int observedRefCount;
             do {
-                auxRefCount = refCount;
-                if (auxRefCount == 0)
+                observedRefCount = refCount;
+                if (observedRefCount == 0)
                     throw new InvalidOperationException();
-                if (Interlocked.CompareExchange(ref refCount, auxRefCount - 1, auxRefCount) == 1) {
-                    IDisposable disposable = value as IDisposable;
-                    value = null;
-                    if (disposable != null)
-                        disposable.Dispose();
+                if (Interlocked.CompareExchange(ref refCount, observedRefCount - 1, observedRefCount) == observedRefCount) {
+                    if (observedRefCount - 1 == 0) {
+                        IDisposable disposable = value as IDisposable;
+                        value = null;
+                        if (disposable != null)
+                            disposable.Dispose();
+                    }
                     return;
                 }
             } while (true);
