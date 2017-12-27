@@ -63,8 +63,8 @@ namespace TerceiraSerie {
         private void Stop() {
 			long elapsed = DateTime.Now.Ticks - start_time.Ticks;
 			writer.WriteLine();
-			LogMessage(String.Format("Running for {0} second(s)", elapsed / 10000000L));
-			LogMessage(String.Format("Number of request(s): {0}", num_requests));
+            writer.WriteLine(String.Format("{0}: Running for {1} second(s)", DateTime.Now, elapsed / 10000000L));
+            writer.WriteLine(String.Format("{0}: Number of request(s): {1}", DateTime.Now, num_requests));
 			writer.WriteLine();
 			writer.WriteLine(String.Format("::- LOG STOPPED @ {0} -::", DateTime.Now));
 			writer.Close();
@@ -79,8 +79,8 @@ namespace TerceiraSerie {
                     Monitor.Wait(hasElements, 10000);
                 }
 
-                /*if (isShutdown)
-                    break;*/
+                if (isShutdown)
+                    break;
 
                 Queue currentQueue = new Queue(messageQueue);
                 messageQueue.Clear();
