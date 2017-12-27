@@ -19,9 +19,16 @@ namespace TerceiraSerie {
         private ThreadLocal<int> recursiveIOCall = new ThreadLocal<int>();
         private const int WAIT_FOR_IDLE_TIMEOUT = 10000;
         private const int POLLING_INTERVAL = WAIT_FOR_IDLE_TIMEOUT/100;
+        private readonly Logger log;
 
         /// <summary> Initiates a tracking server instance.</summary>
         /// <param name="_portNumber"> The TCP port number to be used.</param>
+        public Listener(Logger log) {
+            this.log = log;
+            server = new TcpListener(IPAddress.Loopback, PORT_NUMBER);
+            server.Start();
+        }
+
         public Listener() {
             server = new TcpListener(IPAddress.Loopback, PORT_NUMBER);
             server.Start();
@@ -32,24 +39,30 @@ namespace TerceiraSerie {
         /// </summary>
         /// <param name="log"> The Logger instance to be used.</param>
         public IAsyncResult Run() {
+            log.LogMessage("Listener - Start listening for connections");
             listenAsyncResult = new GenericAsyncResult<int>(null, null, false);
             server.BeginAcceptTcpClient(AcceptTcpClient, null);
             return listenAsyncResult;
         }
 
         private void AcceptTcpClient(IAsyncResult ar) {
-            if (!ar.CompletedSynchronously)
+            if (!ar.CompletedSynchronously) {
+                log.LogMessage("Listener - Connection Completed Asynchronously");
                 CompleteRequest(ar);
+            }
             else {
                 if (recursiveIOCall.Value < MAX_RECURSIVE_IO_CALL) {
+                    log.LogMessage("Listener - Connection Completed Synchronously. Request to be completed recursively");
                     recursiveIOCall.Value++;
                     CompleteRequest(ar);
                     recursiveIOCall.Value--;
                 }
-                else
+                else {
+                    log.LogMessage("Listener - Connection Completed Synchronously. Request to be completed in a new Thread");
                     ThreadPool.QueueUserWorkItem((_) => {
                         CompleteRequest(ar);
                     });
+                }
             }
         }
 
@@ -57,6 +70,8 @@ namespace TerceiraSerie {
             TcpClient socket;
             try {
                 socket = server.EndAcceptTcpClient(ar);
+
+                log.LogMessage("Listener - finish connecting to client.");
 
                 int currentRequest = Interlocked.Increment(ref requestCount);
 
@@ -68,19 +83,19 @@ namespace TerceiraSerie {
                         int notUsed = ((GenericAsyncResult<int>)newAr).Result;
                     }
                     catch (Exception e) {
-                        Console.WriteLine("Exception {0} occured", e.Message);  // change to log
+                        log.LogMessage(String.Format("ERROR - Listener: BeginRequestConnection callback. - Exception {0} occured", e.Message));
                     }
 
                     int beginRequest = Interlocked.Decrement(ref requestCount);
                     if (!isShutingDown && beginRequest == MAXREQUESTS - 1)
                         server.BeginAcceptTcpClient(AcceptTcpClient, null);
                     else if(isShutingDown && beginRequest == 0) {
-                        Console.WriteLine("Finish in Callback");
+                        log.LogMessage("Listener - server finish in Callback");
                         listenAsyncResult.SetResult(0);
                     }
                 });
             } catch(SocketException e) {
-                Console.WriteLine("Socket Exception error code was {0}", e.ErrorCode);  //TODO replace with Log
+                log.LogMessage(String.Format("ERROR - Listener: CompleteRequest - Socket Exception error code was {0}", e.ErrorCode));
             }
         }
 
@@ -93,22 +108,18 @@ namespace TerceiraSerie {
 
                 byte[] requestBuffer = new byte[BUFFER_SIZE];
 
+                log.LogMessage("Beginning to Read client request");
                 stream.BeginRead(requestBuffer, 0, requestBuffer.Length, (ar) => {
                     int bytesRead = stream.EndRead(ar);
                     string request = Encoding.ASCII.GetString(requestBuffer, 0, bytesRead);
 
-                    if (request.Equals("SHUTDOWN")) {
-                        ShutdownAndWaitTermination();
-                    }
-                    else
-                    {
-                        Handler handler = new Handler(stream);
-                        handler.Run(request);
-                        asyncResult.SetResult(0);
-                    }
+                    log.LogMessage(String.Format("Finish reading client request and it was {0}", request));
+                    Handler handler = new Handler(stream, log);
+                    handler.Run(request);
+                    asyncResult.SetResult(0);
                 }, null);
             } catch(Exception e) {
-                Console.WriteLine("Exception {0} occured", e.Message);
+                log.LogMessage(String.Format("ERROR - Listener: BeginRequestConnetion - Exception {0} occured", e.Message));
                 socket.Close();
 
                 if (stream != null)
@@ -118,7 +129,9 @@ namespace TerceiraSerie {
             return asyncResult;
         }
 
-        private void ShutdownAndWaitTermination() {
+        public void ShutdownAndWaitTermination() {
+            log.LogMessage("Server was requested to finish");
+
             for (int i = 0; i < WAIT_FOR_IDLE_TIMEOUT; i += POLLING_INTERVAL) {
                 if (!server.Pending())
                     break;
@@ -133,7 +146,7 @@ namespace TerceiraSerie {
                 Console.WriteLine("Finish Shutdown");   // change to log
                 listenAsyncResult.SetResult(0);
             }
-
+            log.LogMessage("Server finished");
             int notUsed = ((GenericAsyncResult<int>)listenAsyncResult).Result;
         }
     }

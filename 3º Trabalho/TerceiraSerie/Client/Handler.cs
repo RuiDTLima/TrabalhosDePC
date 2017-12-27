@@ -49,7 +49,7 @@ namespace Client {
 
         private static void ProcessGetRequest(string[] arg1) {
             if (arg1.Length - 1 != 1) {
-                Console.WriteLine("(error) Expected 2 parameters received {0}", arg1.Length - 1);
+                Console.WriteLine("(error) Expected 1 parameters received {0}", arg1.Length - 1);
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace Client {
 
         private static void ProcessKeysRequest(string[] arg1) {
             if (arg1.Length != 1) {
-                Console.WriteLine("(error) Expected 2 parameters received {0}", arg1.Length);
+                Console.WriteLine("(error) Expected 0 parameters received {0}", arg1.Length);
                 return;
             }
 
@@ -107,7 +107,7 @@ namespace Client {
 
         private static void ProcessShutdownRequest(string[] arg1) {
             if (arg1.Length != 1) {
-                Console.WriteLine("(error) Expected 2 parameters received {0}", arg1.Length);
+                Console.WriteLine("(error) Expected 0 parameters received {0}", arg1.Length);
                 return;
             }
 

@@ -12,14 +12,15 @@ namespace TerceiraSerie {
             }
 
             // Start servicing
-            //Logger log = new Logger();
-            //log.Start();
-            new Listener().Run();
+            Logger log = new Logger("Log.txt");
+
+            new Listener(log).Run();
             string command = "";
             while (!command.ToLower().Equals("exit")) {
                 Console.WriteLine("Write exit to finish server");
                 command = Console.ReadLine();
             }
+            log.Shutdown();
         }
     }
 }
