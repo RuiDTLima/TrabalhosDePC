@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace TerceiraSerie {
+namespace ServerAPM {
     public sealed class Listener {
         /// <summary>
         /// TCP port number in use.
@@ -13,13 +13,13 @@ namespace TerceiraSerie {
         private readonly int MAXREQUESTS = 10;  // maximum request the server can handle at the same time
         private readonly int MAX_RECURSIVE_IO_CALL = 2;
         private readonly TcpListener server;
+        private readonly Logger log;
+        private const int WAIT_FOR_IDLE_TIMEOUT = 10000;
+        private const int POLLING_INTERVAL = WAIT_FOR_IDLE_TIMEOUT / 100;
         private volatile bool isShutingDown;
         private volatile int requestCount;  // current request count the server is processing
         private GenericAsyncResult<int> listenAsyncResult;
         private ThreadLocal<int> recursiveIOCall = new ThreadLocal<int>();
-        private const int WAIT_FOR_IDLE_TIMEOUT = 10000;
-        private const int POLLING_INTERVAL = WAIT_FOR_IDLE_TIMEOUT/100;
-        private readonly Logger log;
 
         /// <summary> Initiates a tracking server instance.</summary>
         /// <param name="_portNumber"> The TCP port number to be used.</param>
@@ -30,8 +30,6 @@ namespace TerceiraSerie {
         }
 
         public Listener() {
-            server = new TcpListener(IPAddress.Loopback, PORT_NUMBER);
-            server.Start();
         }
 
         /// <summary>

@@ -95,7 +95,7 @@ namespace Client {
                 output.WriteLine("KEYS");
                 output.Flush();
                 string line = input.ReadLine();
-                while (!line.Equals("")) {
+                while (line != null && !line.Equals("")) {
                     Console.WriteLine(line);
                     line = input.ReadLine();
                 }

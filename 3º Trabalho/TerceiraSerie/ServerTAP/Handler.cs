@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace TerceiraSerie {
+namespace ServerTAP {
     class Handler {
         /// <summary>
         /// Data structure that supports message processing dispatch.
@@ -44,16 +44,17 @@ namespace TerceiraSerie {
         /// </summary>
         private static void ProcessSetMessage(string[] cmd, StreamWriter wr, Logger log) {
             if (cmd.Length - 1 != 2) {
-                string errorMessage = String.Format("ERROR - Handler: ProcessSetMessage - Wrong number of arguments (given {0}, expected 2)", cmd.Length - 1);
+                string errorMessage = string.Format("ERROR - Handler: ProcessSetMessage - Wrong number of arguments (given {0}, expected 2)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
-                wr.WriteLine(errorMessage);
+
+                wr.WriteAsync(errorMessage);
             }
             string key = cmd[1];
             string value = cmd[2];
-            log.LogMessage(String.Format("Handler: ProcessSetMessage - Setting key: {0} with value: {1}", key, value));
+            log.LogMessage(string.Format("Handler: ProcessSetMessage - Setting key: {0} with value: {1}", key, value));
             Store.Instance.Set(key, value);
             log.LogMessage("Handler: ProcessSetMessage - New Pair of key-value stored with success");
-            wr.WriteLine("OK\n");
+            wr.WriteAsync("OK\n");
         }
 
         /// <summary>
@@ -61,19 +62,19 @@ namespace TerceiraSerie {
         /// </summary>
         private static void ProcessGetMessage(string[] cmd, StreamWriter wr, Logger log) {
             if (cmd.Length - 1 != 1) {
-                string errorMessage = String.Format("ERROR - Handler: ProcessGetMessage - Wrong number of arguments (given {0}, expected 1)", cmd.Length - 1);
+                string errorMessage = string.Format("ERROR - Handler: ProcessGetMessage - Wrong number of arguments (given {0}, expected 1)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
-                wr.WriteLine(errorMessage);
+                wr.WriteAsync(errorMessage);
             }
             string key = cmd[1];
             string value = Store.Instance.Get(key);
             if (value != null) {
-                log.LogMessage(String.Format("Handler: ProcessGetMessage - key: {0} correspondes to value: {1}", key, value));
-                wr.WriteLine("\"{0}\"\n", value);
+                log.LogMessage(string.Format("Handler: ProcessGetMessage - key: {0} correspondes to value: {1}", key, value));
+                wr.WriteAsync(string.Format("\"{0}\"\n", value));
             }
             else {
-                log.LogMessage(String.Format("Handler: ProcessGetMessage - key {0} does not have any value", key));
-                wr.WriteLine("(nil)\n");
+                log.LogMessage(string.Format("Handler: ProcessGetMessage - key {0} does not have any value", key));
+                wr.WriteAsync("(nil)\n");
             }
         }
 
@@ -82,25 +83,25 @@ namespace TerceiraSerie {
         /// </summary>
         private static void ProcessKeysMessage(string[] cmd, StreamWriter wr, Logger log) {
             if (cmd.Length - 1 != 0) {
-                string errorMessage = String.Format("ERROR - Handler: ProcessKeysMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
+                string errorMessage = string.Format("ERROR - Handler: ProcessKeysMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
-                wr.WriteLine(errorMessage);
+                wr.WriteAsync(errorMessage);
             }
             int ix = 1;
             log.LogMessage("Handler: ProcessKeysMessage - The server contains the following keys:");
             foreach (string key in Store.Instance.Keys()) {
-                String set = String.Format("{0}) \"{1}\"", ix++, key);
+                string set = string.Format("{0}) \"{1}\"\n", ix++, key);
                 log.LogMessage(set);
-                wr.WriteLine(set);
+                wr.WriteAsync(set);
             }
             wr.WriteLine();
         }
 
         private static void ProcessShutDownMessage(string[] cmd, StreamWriter wr, Logger log) {
             if (cmd.Length - 1 != 0) {
-                string errorMessage = String.Format("ERROR - Handler: ProcessShutdownMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
+                string errorMessage = string.Format("ERROR - Handler: ProcessShutdownMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
-                wr.WriteLine(errorMessage);
+                wr.WriteAsync(errorMessage);
             }
             Listener listener = new Listener();
             listener.ShutdownAndWaitTermination();
@@ -122,7 +123,7 @@ namespace TerceiraSerie {
                 output.Flush();
             }
             catch (IOException ioe) {
-                log.LogMessage(String.Format("ERROR - Handler: Run - Connection closed by client {0}", ioe.Message));
+                log.LogMessage(string.Format("ERROR - Handler: Run - Connection closed by client {0}", ioe.Message));
             }
             finally {
                 input.Close();

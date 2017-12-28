@@ -1,20 +1,9 @@
-/*
- * INSTITUTO SUPERIOR DE ENGENHARIA DE LISBOA
- * Licenciatura em Engenharia Informática e de Computadores
- *
- * Programação Concorrente - Inverno de 2009-2010, Inverno de 1017-2018
- * João Trindade
- *
- * Código base para a 3ª Série de Exercícios.
- *
- */
-
 using System;
 using System.Collections;
 using System.IO;
 using System.Threading;
 
-namespace TerceiraSerie {
+namespace ServerTAP {
 	// Logger single-threaded.
 	public class Logger {
 		private readonly TextWriter writer;
@@ -35,13 +24,13 @@ namespace TerceiraSerie {
 		    writer = awriter;
             isShutdown = false;
             Thread loggingThread = new Thread(new ThreadStart(Log));
-            loggingThread.IsBackground = true;
+            //loggingThread.IsBackground = true;
             loggingThread.Start();
 		}
 
 		public void LogMessage(string msg) {
             lock (hasElements) {
-                messageQueue.Enqueue(String.Format("{0}: {1}", DateTime.Now, msg));
+                messageQueue.Enqueue(string.Format("{0}: {1}", DateTime.Now, msg));
                 Monitor.Pulse(hasElements);
             }
         }
@@ -62,12 +51,12 @@ namespace TerceiraSerie {
 
         private void Stop() {
 			long elapsed = DateTime.Now.Ticks - start_time.Ticks;
-			writer.WriteLine();
+            writer.WriteLine();
             writer.WriteLine(String.Format("{0}: Running for {1} second(s)", DateTime.Now, elapsed / 10000000L));
             writer.WriteLine(String.Format("{0}: Number of request(s): {1}", DateTime.Now, num_requests));
-			writer.WriteLine();
-			writer.WriteLine(String.Format("::- LOG STOPPED @ {0} -::", DateTime.Now));
-			writer.Close();
+            writer.WriteLine();
+            writer.WriteLine(String.Format("::- LOG STOPPED @ {0} -::", DateTime.Now));
+            writer.Close();
 		}
 
         private void Log() {
@@ -86,7 +75,7 @@ namespace TerceiraSerie {
                 messageQueue.Clear();
 
                 foreach(string message in currentQueue) {
-                    writer.WriteLine(message);
+                   writer.WriteLine(message);
                 }
             }
             Stop();

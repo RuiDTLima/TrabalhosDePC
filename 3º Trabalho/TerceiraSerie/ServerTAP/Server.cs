@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace TerceiraSerie {
+namespace ServerTAP {
     class Server {
         static void Main(string[] args) {
             String execName = AppDomain.CurrentDomain.FriendlyName.Split('.')[0];
@@ -14,7 +16,10 @@ namespace TerceiraSerie {
             // Start servicing
             Logger log = new Logger("Log.txt");
 
-            new Listener(log).Run();
+            CancellationTokenSource cancellationToken = new CancellationTokenSource();
+
+            Task task = new Listener(log).Run(cancellationToken);
+
             string command = "";
             while (!command.ToLower().Equals("exit")) {
                 Console.WriteLine("Write exit to finish server");

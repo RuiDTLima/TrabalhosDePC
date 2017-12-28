@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace TerceiraSerie {
+namespace ServerTAP {
     class Store {
         /// <summary>
         /// The singleton instance.
