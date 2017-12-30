@@ -5,10 +5,10 @@ using System.Net;
 using System.Net.Sockets;
 
 namespace Client {
-    class Handler {
+    public class Handler {
         private static readonly Dictionary<string, Action<string[]>> MESSAGE_HANDLERS;
         private static ushort PORT = 8080;
-
+        
         static Handler() {
             MESSAGE_HANDLERS = new Dictionary<string, Action<string[]>>();
             MESSAGE_HANDLERS["SET"] = ProcessSetRequest;

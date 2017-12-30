@@ -26,8 +26,6 @@ namespace ServerTAP {
         }
 
         public Listener() {
-            server = new TcpListener(IPAddress.Loopback, PORT_NUMBER);
-            server.Start();
         }
 
         public async Task Run(CancellationTokenSource token) {

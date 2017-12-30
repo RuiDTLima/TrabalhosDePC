@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 namespace ServerAPM {
-    class Handler {
+    public class Handler {
         /// <summary>
         /// Data structure that supports message processing dispatch.
         /// </summary>
