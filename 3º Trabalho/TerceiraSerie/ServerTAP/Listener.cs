@@ -25,7 +25,8 @@ namespace ServerTAP {
             server.Start();
         }
 
-        public Listener() {
+        public bool isShutdown() {
+            return cancelationTokenSource.IsCancellationRequested;
         }
 
         public async Task Run(CancellationTokenSource token) {
@@ -66,7 +67,7 @@ namespace ServerTAP {
                 log.LogMessage(String.Format("Listener: ProcessConnectionAsync - Finish reading client request and it was {0}", request));
 
                 Handler handler = new Handler(stream, log);
-                handler.Run(request);
+                handler.Run(request, this);
 
                 Interlocked.Increment(ref requestCount);
             } catch(Exception e) {
@@ -79,12 +80,6 @@ namespace ServerTAP {
         }
 
         public void ShutdownAndWaitTermination() {
-            for (int i = 0; i < WAIT_FOR_IDLE_TIME; i += POLLING_INTERVAL) {
-                if (!server.Pending())
-                    break;
-                Thread.Sleep(POLLING_INTERVAL);
-            }
-
             // Stop listening.
             server.Stop();
             log.LogMessage("Listener: ShutdownAndWaitTermination - Finish server");

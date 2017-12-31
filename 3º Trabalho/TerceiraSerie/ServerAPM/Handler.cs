@@ -7,7 +7,7 @@ namespace ServerAPM {
         /// <summary>
         /// Data structure that supports message processing dispatch.
         /// </summary>
-        private static readonly Dictionary<string, Action<string[], StreamWriter, Logger>> MESSAGE_HANDLERS;
+        private static readonly Dictionary<string, Action<string[], StreamWriter, Logger, Listener>> MESSAGE_HANDLERS;
 
         /// <summary>
         /// The handler's input (from the TCP connection)
@@ -21,7 +21,7 @@ namespace ServerAPM {
         private Logger log;
 
         static Handler() {
-            MESSAGE_HANDLERS = new Dictionary<string, Action<string[], StreamWriter, Logger>>();
+            MESSAGE_HANDLERS = new Dictionary<string, Action<string[], StreamWriter, Logger, Listener>>();
             MESSAGE_HANDLERS["SET"] = ProcessSetMessage;
             MESSAGE_HANDLERS["GET"] = ProcessGetMessage;
             MESSAGE_HANDLERS["KEYS"] = ProcessKeysMessage;
@@ -42,7 +42,7 @@ namespace ServerAPM {
         /// <summary>
         /// Handles SET messages.
         /// </summary>
-        private static void ProcessSetMessage(string[] cmd, StreamWriter wr, Logger log) {
+        private static void ProcessSetMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 2) {
                 string errorMessage = String.Format("ERROR - Handler: ProcessSetMessage - Wrong number of arguments (given {0}, expected 2)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
@@ -59,7 +59,7 @@ namespace ServerAPM {
         /// <summary>
         /// Handles GET messages.
         /// </summary>
-        private static void ProcessGetMessage(string[] cmd, StreamWriter wr, Logger log) {
+        private static void ProcessGetMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 1) {
                 string errorMessage = String.Format("ERROR - Handler: ProcessGetMessage - Wrong number of arguments (given {0}, expected 1)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
@@ -80,7 +80,7 @@ namespace ServerAPM {
         /// <summary>
         /// Handles KEYS messages.
         /// </summary>
-        private static void ProcessKeysMessage(string[] cmd, StreamWriter wr, Logger log) {
+        private static void ProcessKeysMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 0) {
                 string errorMessage = String.Format("ERROR - Handler: ProcessKeysMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
@@ -96,29 +96,28 @@ namespace ServerAPM {
             wr.WriteLine();
         }
 
-        private static void ProcessShutDownMessage(string[] cmd, StreamWriter wr, Logger log) {
+        private static void ProcessShutDownMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 0) {
                 string errorMessage = String.Format("ERROR - Handler: ProcessShutdownMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);
                 log.LogMessage(errorMessage);
                 wr.WriteLine(errorMessage);
             }
-            Listener listener = new Listener();
             listener.ShutdownAndWaitTermination();
         }
 
         /// <summary>
         /// Performs request servicing.
         /// </summary>
-        public void Run(string request) {
+        public void Run(string request, Listener listener) {
             try {
                 string[] cmd = request.Trim().Split(' ');
-                Action<string[], StreamWriter, Logger> handler = null;
+                Action<string[], StreamWriter, Logger, Listener> handler = null;
                 if (cmd.Length < 1 || !MESSAGE_HANDLERS.TryGetValue(cmd[0], out handler)) {
                     log.LogMessage("ERROR - Handler: Run - Unknown message type");
                     return;
                 }
                 // Dispatch request processing
-                handler(cmd, output, log);
+                handler(cmd, output, log, listener);
                 output.Flush();
             }
             catch (IOException ioe) {

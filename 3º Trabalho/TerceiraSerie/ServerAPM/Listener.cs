@@ -29,9 +29,9 @@ namespace ServerAPM {
             server.Start();
         }
 
-        public Listener() {
+        public bool getIsShutingDown() {
+            return isShutingDown;
         }
-
         /// <summary>
         ///	Server's main loop implementation.
         /// </summary>
@@ -94,6 +94,8 @@ namespace ServerAPM {
                 });
             } catch(SocketException e) {
                 log.LogMessage(String.Format("ERROR - Listener: CompleteRequest - Socket Exception error code was {0}", e.ErrorCode));
+            } catch(InvalidOperationException e) {
+                log.LogMessage(String.Format("ERROR - Listener: CompleteRequest - Invalid Operation error message was {0}", e.Message));
             }
         }
 
@@ -113,7 +115,7 @@ namespace ServerAPM {
 
                     log.LogMessage(String.Format("Finish reading client request and it was {0}", request));
                     Handler handler = new Handler(stream, log);
-                    handler.Run(request);
+                    handler.Run(request, this);
                     asyncResult.SetResult(0);
                 }, null);
             } catch(Exception e) {
@@ -130,22 +132,9 @@ namespace ServerAPM {
         public void ShutdownAndWaitTermination() {
             log.LogMessage("Server was requested to finish");
 
-            for (int i = 0; i < WAIT_FOR_IDLE_TIMEOUT; i += POLLING_INTERVAL) {
-                if (!server.Pending())
-                    break;
-                Thread.Sleep(POLLING_INTERVAL);
-            }
-
             server.Stop();
             isShutingDown = true;
-
-            Interlocked.MemoryBarrier();
-            if(requestCount == 0) {
-                Console.WriteLine("Finish Shutdown");   // change to log
-                listenAsyncResult.SetResult(0);
-            }
             log.LogMessage("Server finished");
-            int notUsed = ((GenericAsyncResult<int>)listenAsyncResult).Result;
         }
     }
 }

@@ -14,12 +14,15 @@ namespace ServerAPM {
             // Start servicing
             Logger log = new Logger("Log.txt");
 
-            new Listener(log).Run();
-            string command = "";
+            Listener listener = new Listener(log);
+            listener.Run();
+            /*string command = "";
             while (!command.ToLower().Equals("exit")) {
                 Console.WriteLine("Write exit to finish server");
                 command = Console.ReadLine();
-            }
+            }*/
+            Console.WriteLine("Waiting For shutdown to be called.");
+            while (!listener.getIsShutingDown()) ;
             log.Shutdown();
         }
     }

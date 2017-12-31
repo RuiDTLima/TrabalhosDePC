@@ -125,14 +125,15 @@ namespace Client {
             }
         }
 
-        public void Run(string request) {
+        public bool Run(string request) {
             string[] cmd = request.Trim().Split(' ');
             Action<string[]> handler = null;
             if (cmd.Length < 1 || !MESSAGE_HANDLERS.TryGetValue(cmd[0], out handler)) {
-                return;
+                return false;
             }
             // Dispatch request processing
             handler(cmd);
+            return cmd[0].Equals("SHUTDOWN");
         }
     }
 }
