@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace BiggestFileSearch {
     class Program {
-        private static long smallestSize = 0;
         private static object monitor = new object();
 
         static void Main(string[] args) {
@@ -21,6 +20,10 @@ namespace BiggestFileSearch {
 
             Tuple<string[], long> result = GetBiggestFiles(directoryPath, numberOfFileToPresent);
 
+            if (result == null) {
+                Console.WriteLine("There was an error in find files");
+                return;
+            }
             string[] files = result.Item1;
             long numberOfFiles = result.Item2;
 
@@ -59,11 +62,6 @@ namespace BiggestFileSearch {
                 DirectoryInfo directoryInfo = new DirectoryInfo(currentDirectory);
                 files.AddRange(directoryInfo.GetFiles());
             }
-            /*do {
-                subDirectories = Directory.GetDirectories(directoryPath);
-                foreach (string subDirectory in subDirectories)
-                    directories.Enqueue(subDirectory);
-            } while (subDirectories != null);*/
 
             try {
                 foreach(string directory in directories) {
@@ -71,33 +69,47 @@ namespace BiggestFileSearch {
                     files.AddRange(directoryInfo.GetFiles());
                 }
 
-                Parallel.ForEach<FileInfo, FileInfo>(files, 
-                    () => null, 
+                Parallel.ForEach<FileInfo, FileInfo[]>(files,
+                    () => new FileInfo[numberOfFileToPresent], 
                     (file, loopState, index, partial) => {
-                        filesEncountered++;
-                        //Console.WriteLine(smallestSize);
-                        return file.Length > smallestSize ? file : null;
-                    }, (file) => {
-                        if (file == null)
+                        Interlocked.Increment(ref filesEncountered);
+                        if (partial[0] == null) { 
+                            partial[0] = file;
+                            for (int i = 0; i < partial.Length - 1; i++) {
+                                if (partial[i + 1] == null) {
+                                    partial[i + 1] = partial[i];
+                                    partial[i] = null;
+                                }
+                                else break;
+                            }
+                        } else if(partial[0].Length < file.Length) {
+                            partial[0] = file;
+                        }
+
+                        for (int i = partial.Length - 1; i > 0; i--) {
+                            if (partial[i - 1] == null)
+                                break;
+                            if(partial[i].Length < partial[i - 1].Length) {
+                                var temp = partial[i];
+                                partial[i] = partial[i - 1];
+                                partial[i - 1] = temp;
+                            }
+                        }
+                            
+                        return partial;
+                    }, (directoryFiles) => {
+                        if (files == null)
                             return;
                         lock (monitor) {
-                            int iterationSmallestSizeIndex = 0;
-                            long iterationSmallestSize = file.Length;
-                            for (int i = 0; i < biggestFiles.Length; i++) {
-                                if (biggestFiles[i] == null) {
-                                    Console.WriteLine("Index: {0}", i);
-                                    iterationSmallestSizeIndex = i;
-                                    iterationSmallestSize = 0;
+                            int idx = directoryFiles.Length - 1;
+                            for (int i = biggestFiles.Length - 1; i >= 0; i--) {
+                                if (directoryFiles[idx] == null)
                                     break;
-                                }
-                                if (biggestFiles[i].Item2 < smallestSize) {
-                                    iterationSmallestSize = biggestFiles[i].Item2;
-                                    iterationSmallestSizeIndex = i;
+                                if(biggestFiles[i] == null || directoryFiles[idx].Length > biggestFiles[i].Item2) {
+                                    biggestFiles[i] = new Tuple<string, long>(directoryFiles[idx].FullName, directoryFiles[idx].Length);
+                                    idx--;
                                 }
                             }
-                            biggestFiles[iterationSmallestSizeIndex] = new Tuple<string, long>(file.FullName, file.Length);
-                            if (iterationSmallestSize != 0)
-                                smallestSize = iterationSmallestSize;
                         }
                 });
 
@@ -112,117 +124,6 @@ namespace BiggestFileSearch {
                 Console.WriteLine(e.Message);
             }
             return null;
-           /* while(directories.Count > 0) {
-                string currentDirectory = directories.Dequeue().ToString();
-                string[] subDirectories = { };
-
-                try {
-                    subDirectories = Directory.GetDirectories(currentDirectory);
-                } catch(Exception e) {
-                    Console.WriteLine(e.Message);
-                    continue;
-                }
-
-                foreach (string subDirectory in subDirectories)
-                    directories.Enqueue(subDirectory);
-
-                try {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(currentDirectory);
-                    FileInfo[] fileInfo = directoryInfo.GetFiles();
-
-                    /*if (fileInfo.Length < processoresCount) {
-                        foreach (FileInfo file in fileInfo) {
-                            filesEncountered++;
-                            if (file.Length > smallestSize) {
-                                biggestFiles[smallestSizeIndex] = new Tuple<string, long>(file.FullName, file.Length);
-                                if (filesEncountered >= biggestFiles.Length) {
-
-                                    while(Interlocked.CompareExchange(ref smallestSize, file.Length, smallestSize) != smallestSize);
-
-                                    //smallestSize = file.Length;
-                                    long iterationSmallestSize = smallestSize;
-                                    for (int i = 0; i < biggestFiles.Length; i++) {
-                                        if(biggestFiles[i].Item2 < iterationSmallestSize) {
-                                            iterationSmallestSize = biggestFiles[i].Item2;
-                                            smallestSizeIndex = i;
-                                        }
-                                    }
-
-                                } else {
-                                    smallestSizeIndex = (smallestSizeIndex + 1) % numberOfFileToPresent;
-                                }
-                            }
-                        }
-                    } else {*/
-                    /*ParallelLoopResult result = Parallel.ForEach<FileInfo, FileInfo>(fileInfo, () => {
-                        return null;
-                    }, (file, loopState, index, partial) => {
-                        filesEncountered++;
-                        return (file.Length > smallestSize) ? file : null;
-                    }, (file) => {
-                        if (file == null)
-                            return;
-                        lock (monitor) {
-                            Console.WriteLine(file.FullName);
-                            if (file.Length > smallestSize) {
-                                biggestFiles[smallestSizeIndex] = new Tuple<string, long>(file.FullName, file.Length);
-                                if (filesEncountered >= biggestFiles.Length) {
-                                    for (int i = 0; i < biggestFiles.Length; i++) {
-                                        if (biggestFiles[i] == null) {
-                                            smallestSizeIndex = i;
-                                            break;
-                                        }
-                                        if (biggestFiles[i].Item2 < smallestSize) {
-                                            smallestSize = biggestFiles[i].Item2;
-                                            smallestSizeIndex = i;
-                                        }
-                                    }
-
-                                }
-                                else {
-                                    smallestSizeIndex = (smallestSizeIndex + 1) % numberOfFileToPresent;
-                                }
-                            }
-                        }
-                    });*/ 
-                        /*Parallel.ForEach(fileInfo, (file, loopState) => {
-                            if (loopState.IsStopped)
-                                return;
-
-                            if (file.Length > smallestSize) {
-                                lock (monitor) {
-                                    Interlocked.Increment(ref filesEncountered);
-                                    biggestFiles[smallestSizeIndex] = new Tuple<string, long>(file.FullName, file.Length);
-                                    smallestSizeIndex = (smallestSizeIndex + 1) % numberOfFileToPresent;
-                                    if (filesEncountered >= biggestFiles.Length) {
-                                        long iterationSmallestSize = file.Length;
-                                        int iterationSmallestSizeIndex = 0;
-                                        for (int i = 0; i < biggestFiles.Length; i++) {
-                                            if (biggestFiles[i].Item2 < smallestSize) {
-                                                iterationSmallestSize = biggestFiles[i].Item2;
-                                                iterationSmallestSizeIndex = i;
-                                            }
-                                        }
-                                        smallestSize = iterationSmallestSize;
-                                        smallestSizeIndex = iterationSmallestSizeIndex;
-                                    }
-                                }
-                                
-                            }
-                        });*/
-                    //}
-               /* } catch(Exception e) {
-                    Console.WriteLine(e.Message);
-                    continue;
-                }
-            }
-
-            string[] filesReturned = new string[numberOfFileToPresent];
-
-            for (int i = 0; i < numberOfFileToPresent; i++) {
-                filesReturned[i] = biggestFiles[i].Item1;
-            }
-            return new Tuple<string[], long>(filesReturned, filesEncountered);*/
         }
     }
 }
