@@ -43,7 +43,7 @@ namespace BiggestFileSearch {
                 return null;
 
             directories.Enqueue(directoryPath);
-
+            
             while(directories.Count > 0) {
                 string currentDirectory = directories.Dequeue().ToString();
                 string[] subDirectories = { };
