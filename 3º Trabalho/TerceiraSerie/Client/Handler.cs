@@ -133,7 +133,7 @@ namespace Client {
             }
             // Dispatch request processing
             handler(cmd);
-            return cmd[0].Equals("SHUTDOWN");
+            return cmd[0].Equals("SHUTDOWN") && cmd.Length == 1;
         }
     }
 }
