@@ -6,10 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace BiggestFileSearch {
-    class Program {
+    public class BiggestFileSearch {
         private static object monitor = new object();
 
-        static void Main(string[] args) {
+        public static void Main(string[] args) {
             if(args.Length != 2) {
                 Console.WriteLine("To call the application provide the directory path followed by the number of files to present");
                 return;
@@ -34,7 +34,7 @@ namespace BiggestFileSearch {
             }
         }
 
-        private static Tuple<string[], long> GetBiggestFiles(string directoryPath, int numberOfFileToPresent, CancellationToken cancellationToken) {
+        public static Tuple<string[], long> GetBiggestFiles(string directoryPath, int numberOfFileToPresent, CancellationToken cancellationToken) {
             Tuple<string, long>[] biggestFiles = new Tuple<string, long>[numberOfFileToPresent];
             long filesEncountered = 0;
             List<FileInfo> files = new List<FileInfo>();
@@ -46,6 +46,7 @@ namespace BiggestFileSearch {
             directories.Enqueue(directoryPath);
             
             while(directories.Count > 0 && !cancellationToken.IsCancellationRequested) {
+                Thread.Sleep(1000);
                 string currentDirectory = directories.Dequeue().ToString();
                 string[] subDirectories = { };
 

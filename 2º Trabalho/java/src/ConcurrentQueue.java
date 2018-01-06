@@ -14,6 +14,7 @@ public class ConcurrentQueue<T> {
     private Node<T> dummy = new Node<>(null);
     private AtomicReference<Node<T>> head = new AtomicReference<>(dummy);
     private AtomicReference<Node<T>> tail = new AtomicReference<>(dummy);
+    obje
 
     /**
      *  É criado inicialmente um novo elemento pronto a ser adicionado ao queue, e é guardado o estado
