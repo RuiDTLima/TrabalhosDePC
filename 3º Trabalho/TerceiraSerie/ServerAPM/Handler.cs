@@ -50,8 +50,10 @@ namespace ServerAPM {
             }
             string key = cmd[1];
             string value = cmd[2];
+
             log.LogMessage(String.Format("Handler: ProcessSetMessage - Setting key: {0} with value: {1}", key, value));
             Store.Instance.Set(key, value);
+
             log.LogMessage("Handler: ProcessSetMessage - New Pair of key-value stored with success");
             wr.WriteLine("OK\n");
         }
@@ -67,6 +69,7 @@ namespace ServerAPM {
             }
             string key = cmd[1];
             string value = Store.Instance.Get(key);
+
             if (value != null) {
                 log.LogMessage(String.Format("Handler: ProcessGetMessage - key: {0} correspondes to value: {1}", key, value));
                 wr.WriteLine("\"{0}\"\n", value);
@@ -87,6 +90,7 @@ namespace ServerAPM {
                 wr.WriteLine(errorMessage);
             }
             int ix = 1;
+
             log.LogMessage("Handler: ProcessKeysMessage - The server contains the following keys:");
             foreach (string key in Store.Instance.Keys()) {
                 String set = String.Format("{0}) \"{1}\"", ix++, key);
@@ -96,6 +100,13 @@ namespace ServerAPM {
             wr.WriteLine();
         }
 
+        /// <summary>
+        /// Handles SHUTDOWN message
+        /// </summary>
+        /// <param name="cmd">o conjunto de comandos, que neste consiste na palavra SHUTDOWN</param>
+        /// <param name="wr">o writer para onde deve ser escrito o outpu</param>
+        /// <param name="log">o logger usado para fazer log da aplicação</param>
+        /// <param name="listener">o listener correspondente ao servidor que vai ser desligado</param>
         private static void ProcessShutDownMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 0) {
                 string errorMessage = String.Format("ERROR - Handler: ProcessShutdownMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);

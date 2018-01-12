@@ -12,10 +12,11 @@ namespace Client {
 
             string request = "";
             Handler handler = new Handler();
+            Handler secondHandler = new Handler();
             while (true) {
                 Console.WriteLine("\nClient connected to server use one of the following commands:\n\tSET <key> <value>\n\tGET <key>\n\tKEYS\n\tSHUTDOWN");
                 request = Console.ReadLine();
-                if (handler.Run(request))
+                if (handler.Run(request) && secondHandler.Run(request))
                     break;
             }
         }

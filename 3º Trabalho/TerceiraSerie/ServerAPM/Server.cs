@@ -1,8 +1,8 @@
 ﻿using System;
 
 namespace ServerAPM {
-    class Server {
-        static void Main(string[] args) {
+    public class Server {
+        public static void Main(string[] args) {
             String execName = AppDomain.CurrentDomain.FriendlyName.Split('.')[0];
 
             // Checking command line arguments
@@ -16,14 +16,11 @@ namespace ServerAPM {
 
             Listener listener = new Listener(log);
             listener.Run();
-            /*string command = "";
-            while (!command.ToLower().Equals("exit")) {
-                Console.WriteLine("Write exit to finish server");
-                command = Console.ReadLine();
-            }*/
+
             Console.WriteLine("Waiting For shutdown to be called.");
-            while (!listener.getIsShutingDown()) ;
+            while (!listener.isShutdown()) ;
             log.Shutdown();
+            while (!log.isLogFinished()) ;
         }
     }
 }

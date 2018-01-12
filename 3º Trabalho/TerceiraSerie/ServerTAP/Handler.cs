@@ -97,6 +97,13 @@ namespace ServerTAP {
             wr.WriteLine();
         }
 
+        /// <summary>
+        /// Handles SHUTDOWN message
+        /// </summary>
+        /// <param name="cmd">o conjunto de comandos, que neste consiste na palavra SHUTDOWN</param>
+        /// <param name="wr">o writer para onde deve ser escrito o outpu</param>
+        /// <param name="log">o logger usado para fazer log da aplicação</param>
+        /// <param name="listener">o listener correspondente ao servidor que vai ser desligado</param>
         private static void ProcessShutDownMessage(string[] cmd, StreamWriter wr, Logger log, Listener listener) {
             if (cmd.Length - 1 != 0) {
                 string errorMessage = string.Format("ERROR - Handler: ProcessShutdownMessage - Wrong number of arguments (given {0}, expected 0)", cmd.Length - 1);

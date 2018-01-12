@@ -20,16 +20,13 @@ namespace ServerTAP {
 
             Listener listener = new Listener(log);
             Task task = listener.Run(cancellationToken);
-
-            /*string command = "";
-            while (!command.ToLower().Equals("exit")) {
-                Console.WriteLine("Write exit to finish server");
-                command = Console.ReadLine();
-            }*/
-
+            
             Console.WriteLine("Waiting For shutdown to be called.");
             while (!listener.isShutdown()) ;
+
             log.Shutdown();
+
+            while (!log.isLogFinished()) ;
         }
     }
 }

@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{458158D5-3589-4FE1-8099-391915656C38}</ProjectGuid>
+    <ProjectGuid>{AAE6C56D-AC1E-459A-AA8E-B8944A74BF8E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Tests</RootNamespace>
-    <AssemblyName>Tests</AssemblyName>
+    <RootNamespace>TesteBiggestFileSearch</RootNamespace>
+    <AssemblyName>TesteBiggestFileSearch</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -50,21 +50,13 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="TesteServerAPM.cs" />
+    <Compile Include="TesteBiggestFiles.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Client\Client.csproj">
-      <Project>{7d69d30e-899e-480d-bdce-4e583966716c}</Project>
-      <Name>Client</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServerAPM\ServerAPM.csproj">
-      <Project>{153372d8-7dc7-4778-8248-15a0b48af54a}</Project>
-      <Name>ServerAPM</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\ServerTAP\ServerTAP.csproj">
-      <Project>{8919d0dc-581b-4e19-b8fc-ad559c649921}</Project>
-      <Name>ServerTAP</Name>
+    <ProjectReference Include="..\BiggestFileSearch\BiggestFileSearch.csproj">
+      <Project>{27e85c6e-cb08-4842-8763-563310f9c3f8}</Project>
+      <Name>BiggestFileSearch</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

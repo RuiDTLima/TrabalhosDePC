@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace Client {
     public class Handler {
-        private static readonly Dictionary<string, Action<string[]>> MESSAGE_HANDLERS;
+        private static readonly Dictionary<string, Action<string[]>> MESSAGE_HANDLERS;  // contentor indicando todas as operações a executar para cada um dos comandos disponiveis
         private static ushort PORT = 8080;
         
         static Handler() {
@@ -17,6 +17,9 @@ namespace Client {
             MESSAGE_HANDLERS["SHUTDOWN"] = ProcessShutdownRequest;
         }
 
+        /**
+         * Manda o servidor executar o comando SET
+         */
         private static void ProcessSetRequest(string[] arg1) {
             if(arg1.Length - 1 != 2) {
                 Console.WriteLine("(error) Expected 2 parameters received {0}", arg1.Length - 1);
@@ -47,6 +50,9 @@ namespace Client {
             } 
         }
 
+        /**
+         *  Manda o servidor executar o comando GET 
+         */
         private static void ProcessGetRequest(string[] arg1) {
             if (arg1.Length - 1 != 1) {
                 Console.WriteLine("(error) Expected 1 parameters received {0}", arg1.Length - 1);
@@ -79,6 +85,9 @@ namespace Client {
             }
         }
 
+        /**
+         *  Manda o servidor executar o comando KEYS 
+         */
         private static void ProcessKeysRequest(string[] arg1) {
             if (arg1.Length != 1) {
                 Console.WriteLine("(error) Expected 0 parameters received {0}", arg1.Length);
@@ -105,6 +114,9 @@ namespace Client {
             }
         }
 
+        /**
+         * Manda o servidor executar o comando SHUTDOWN
+         */
         private static void ProcessShutdownRequest(string[] arg1) {
             if (arg1.Length != 1) {
                 Console.WriteLine("(error) Expected 0 parameters received {0}", arg1.Length);
@@ -125,6 +137,9 @@ namespace Client {
             }
         }
 
+        /**
+         *  Decide qual o método a chamar tendo em conta o pedido recebido 
+         */
         public bool Run(string request) {
             string[] cmd = request.Trim().Split(' ');
             Action<string[]> handler = null;

@@ -6,10 +6,7 @@ using System.Threading;
 
 namespace ServerAPM {
     public sealed class Listener {
-        /// <summary>
-        /// TCP port number in use.
-        /// </summary>
-        private readonly int PORT_NUMBER = 8080;
+        private readonly int PORT_NUMBER = 8080;    // TCP port number in use
         private readonly int MAXREQUESTS = 10;  // maximum request the server can handle at the same time
         private readonly int MAX_RECURSIVE_IO_CALL = 2;
         private readonly TcpListener server;
@@ -22,20 +19,22 @@ namespace ServerAPM {
         private ThreadLocal<int> recursiveIOCall = new ThreadLocal<int>();
 
         /// <summary> Initiates a tracking server instance.</summary>
-        /// <param name="_portNumber"> The TCP port number to be used.</param>
         public Listener(Logger log) {
             this.log = log;
             server = new TcpListener(IPAddress.Loopback, PORT_NUMBER);
             server.Start();
         }
-
-        public bool getIsShutingDown() {
+        
+        /**
+         * Indica se o shutdown ao servidor já foi pedido pelo cliente. 
+         */
+        public bool isShutdown() {
             return isShutingDown;
         }
+
         /// <summary>
         ///	Server's main loop implementation.
         /// </summary>
-        /// <param name="log"> The Logger instance to be used.</param>
         public IAsyncResult Run() {
             log.LogMessage("Listener - Start listening for connections");
             listenAsyncResult = new GenericAsyncResult<int>(null, null, false);
@@ -43,6 +42,13 @@ namespace ServerAPM {
             return listenAsyncResult;
         }
 
+        /**
+         * Callback passado ao BeginAcceptTcpClient, o qual vê se a sua chamada foi feita asincronamente ou sincronamente.
+         * Caso tenha sido feita asincronamente apenas chama o CompleteRequest o qual termina a aceitação de um cliente.
+         * Caso tenha sido feita sincronamente, avalia se o CompleteRequest pode ser chamado recursivamente ou se tem de
+         * ser chamado por uma thread do threadPool, caso seja a primeira opção incrementa o total de chamadas recursivas
+         * já efectuadas e depois da chamada ao CompleteRequest decrementa esse valor
+         */
         private void AcceptTcpClient(IAsyncResult ar) {
             if (!ar.CompletedSynchronously) {
                 log.LogMessage("Listener - Connection Completed Asynchronously");
@@ -64,6 +70,13 @@ namespace ServerAPM {
             }
         }
 
+        /**
+         * Termina a aceitação da conecção do cliente chamando o EndAcceptTcpClient e depois de avaliar se é possível
+         * aceitar mais clientes nomeadamente avaliado o valor de isShutingDown para saber se é necessário terminar o 
+         * servidor e o valor da quantidade actual de pedidos a efectuar, caso seja possivel chama-se novamente o 
+         * BeginAcceptTcpClient. Depois prepara-se a leitura da connecção chamando o BeginRequestConnection e definindo
+         * o seu callback.
+         */
         private void CompleteRequest(IAsyncResult ar) {
             TcpClient socket;
             try {
@@ -84,12 +97,12 @@ namespace ServerAPM {
                         log.LogMessage(String.Format("ERROR - Listener: BeginRequestConnection callback. - Exception {0} occured", e.Message));
                     }
 
-                    int beginRequest = Interlocked.Decrement(ref requestCount);
+                    int beginRequest = Interlocked.Decrement(ref requestCount); // o cliente já acabou a sua comunicação com o servidor
                     if (!isShutingDown && beginRequest == MAXREQUESTS - 1)
-                        server.BeginAcceptTcpClient(AcceptTcpClient, null);
+                        server.BeginAcceptTcpClient(AcceptTcpClient, null); // reinicia-se uma connecção com um cliente aceitando novos clientes
                     else if(isShutingDown && beginRequest == 0) {
                         log.LogMessage("Listener - server finish in Callback");
-                        listenAsyncResult.SetResult(0);
+                        listenAsyncResult.SetResult(0); // termina a execução do listener
                     }
                 });
             } catch(SocketException e) {
@@ -99,6 +112,11 @@ namespace ServerAPM {
             }
         }
 
+        /**
+         *  A comunicação própriamente dita com o cliente, sendo iniciado a leitura dos pedidos feitos pelo cliente
+         *  através da chamada ao método BeginRead do stream estabelecido com o cliente, executando-se a operação pedida
+         *  pelo cliente definida no Handler. 
+         */
         private IAsyncResult BeginRequestConnection(TcpClient socket, AsyncCallback callback) {
             const int BUFFER_SIZE = 1024;
             GenericAsyncResult<int> asyncResult = new GenericAsyncResult<int>(callback, null, false);
@@ -116,7 +134,7 @@ namespace ServerAPM {
                     log.LogMessage(String.Format("Finish reading client request and it was {0}", request));
                     Handler handler = new Handler(stream, log);
                     handler.Run(request, this);
-                    asyncResult.SetResult(0);
+                    asyncResult.SetResult(0);   // termina-se a escuta de comandos do cliente
                 }, null);
             } catch(Exception e) {
                 log.LogMessage(String.Format("ERROR - Listener: BeginRequestConnetion - Exception {0} occured", e.Message));
@@ -129,6 +147,11 @@ namespace ServerAPM {
             return asyncResult;
         }
 
+        /**
+         *  Método chamado para definir a terminação do funcionamento do servidor
+         *  Momento a partir do qual não são aceites novas conecções, tentando-se
+         *  terminar as conecções activas. 
+         */
         public void ShutdownAndWaitTermination() {
             log.LogMessage("Server was requested to finish");
 

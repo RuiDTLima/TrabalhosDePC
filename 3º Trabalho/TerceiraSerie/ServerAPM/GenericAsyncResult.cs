@@ -11,7 +11,6 @@ using System;
 using System.Threading;
 
 // Generic IAsyncResult implementation 
-
 namespace ServerAPM {
     public class GenericAsyncResult<R> : IAsyncResult {
         private const int STATE_BITS = (1 << 0) | (1 << 1), ONGOING = 0, COMPLETING = 1, COMPLETED = 2;
@@ -35,7 +34,6 @@ namespace ServerAPM {
         //
         // Returns a completed instance of GenericAsyncResult<R> with the specified result.
         //
-
         public static IAsyncResult FromResult(AsyncCallback ucallback, object ustate, R result, Exception error,
                                               bool synchCompletion) {
             GenericAsyncResult<R> gar = new GenericAsyncResult<R>(ucallback, ustate, synchCompletion);
@@ -46,7 +44,6 @@ namespace ServerAPM {
         //
         // Try to complete the underlying asynchronous operation.
         //
-
         private bool TrySet(R result, Exception error) {
             int s;
             do {
@@ -98,7 +95,6 @@ namespace ServerAPM {
         //---
         // The IAsyncResult interface's implementation.
         //---
-
         public bool IsCompleted {
             get {
                 return (state & STATE_BITS) == COMPLETED;
@@ -154,6 +150,5 @@ namespace ServerAPM {
                 return result;
             }
         }
-#pragma warning restore 420
     }
 }
