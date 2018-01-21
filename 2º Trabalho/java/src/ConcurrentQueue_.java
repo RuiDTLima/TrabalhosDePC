@@ -15,9 +15,7 @@ import java.util.concurrent.atomic.*;
  /**
   *  Fake implementation of Michael-Scott Non-blocking Queue Algorithm (Michael and Scott, 1996)
   */
-
 public class ConcurrentQueue_<T> {
-
 	// enqueue a datum	
 	public void enqueue(T v) {}
 
@@ -42,7 +40,6 @@ public class ConcurrentQueue_<T> {
 	/**
 	 * Test method.
 	 */
-
 	public static boolean testMichaelScottQueue() throws InterruptedException {
 	
 		final int CONSUMER_THREADS = 2;
