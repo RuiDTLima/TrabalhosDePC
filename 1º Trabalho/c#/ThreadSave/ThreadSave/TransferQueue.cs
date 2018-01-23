@@ -34,8 +34,7 @@ namespace ThreadSave {
                 if(readers.Count != 0) {
                     readers.First.Value.ready = true;
                     SyncUtils.Pulse(mon, readers.First.Value.thread);
-                } else if (TimeOut.NoWait(timeout))
-                {
+                } else if (TimeOut.NoWait(timeout)) {
                     writers.RemoveLast();
                     return false;
                 }

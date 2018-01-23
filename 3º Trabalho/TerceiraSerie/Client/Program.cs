@@ -14,9 +14,9 @@ namespace Client {
             Handler handler = new Handler();
             Handler secondHandler = new Handler();
             while (true) {
-                Console.WriteLine("\nClient connected to server use one of the following commands:\n\tSET <key> <value>\n\tGET <key>\n\tKEYS\n\tSHUTDOWN");
+                Console.WriteLine("\nClient connected to server use one of the following commands:\n\tSET <key> <value>\n\tGET <key>\n\tBGET <key> <timeout>\n\tKEYS\n\tSHUTDOWN");
                 request = Console.ReadLine();
-                if (handler.Run(request) && secondHandler.Run(request))
+                if (handler.Run(request))
                     break;
             }
         }

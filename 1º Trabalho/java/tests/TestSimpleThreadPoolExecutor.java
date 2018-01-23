@@ -130,7 +130,7 @@ public class TestSimpleThreadPoolExecutor {
                     threadPool.execute(()->{
                         while (!termination.get());
                         counter.incrementAndGet();
-                    },500);
+                    },550);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

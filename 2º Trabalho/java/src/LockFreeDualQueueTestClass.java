@@ -2,8 +2,14 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class LockFreeDualQueueTestClass {
     public static void main(String[] args) throws Throwable {
-        System.out.printf("%n--> Test lock free dual queue: %s%n",
-                (testLockFreeDualQueue() ? "passed" : "failed"));
+        boolean passed;
+        for (int i = 0; i < 50; i++) {
+            System.out.println("Run number " + i);
+            System.out.printf("%n--> Test lock free dual queue: %s%n",
+                    ((passed = testLockFreeDualQueue()) ? "passed" : "failed"));
+            if (!passed)
+                break;
+        }
     }
 
     /**

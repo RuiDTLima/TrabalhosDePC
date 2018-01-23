@@ -13,6 +13,7 @@ namespace Client {
             MESSAGE_HANDLERS = new Dictionary<string, Action<string[]>>();
             MESSAGE_HANDLERS["SET"] = ProcessSetRequest;
             MESSAGE_HANDLERS["GET"] = ProcessGetRequest;
+            MESSAGE_HANDLERS["BGET"] = ProcessBGetRequest;
             MESSAGE_HANDLERS["KEYS"] = ProcessKeysRequest;
             MESSAGE_HANDLERS["SHUTDOWN"] = ProcessShutdownRequest;
         }
@@ -46,7 +47,6 @@ namespace Client {
                     throw new Exception("Invalid response format");
 
                 output.Close();
-                client.Close();
             } 
         }
 
@@ -74,7 +74,42 @@ namespace Client {
                 input.ReadLine();
 
                 output.Close();
-                client.Close();
+                if (line == "(nil)")
+                    Console.WriteLine(line);
+                else if (line.StartsWith("\"") && line.EndsWith("\"")) {
+                    Console.WriteLine(line.Substring(1, line.Length - 2));
+                }
+                else
+                    throw new Exception("Invalid response format");
+            }
+        }
+
+        /**
+         * Manda o servidor executar o comando BGet 
+         */
+        private static void ProcessBGetRequest(string[] arg) {
+            if (arg.Length - 1 != 2) {
+                Console.WriteLine("(error) Expected 2 parameters received {0}", arg.Length - 1);
+                return;
+            }
+
+            string key = arg[1];
+            string timeout = arg[2];
+
+            using (TcpClient client = new TcpClient()) {
+                client.Connect(IPAddress.Loopback, PORT);
+
+                StreamWriter output = new StreamWriter(client.GetStream());
+                StreamReader input = new StreamReader(client.GetStream());
+
+                // Send request type line
+                output.WriteLine("BGET {0} {1}", key, timeout);
+                output.Flush();
+                string line = input.ReadLine();
+                input.ReadLine();
+
+                output.Close();
+
                 if (line == "(nil)")
                     Console.WriteLine(line);
                 else if (line.StartsWith("\"") && line.EndsWith("\"")) {
@@ -110,7 +145,6 @@ namespace Client {
                 }
 
                 output.Close();
-                client.Close();
             }
         }
 
@@ -133,7 +167,6 @@ namespace Client {
                 output.Flush();
 
                 output.Close();
-                client.Close();
             }
         }
 

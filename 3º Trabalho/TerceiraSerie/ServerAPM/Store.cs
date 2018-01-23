@@ -48,6 +48,13 @@ namespace ServerAPM {
             return value;
         }
 
+        /**
+         * Indica que já foi inserida no servidor algum valor para a chave key 
+         */
+        public bool ExistsKey(string key) {
+            return _store.ContainsKey(key);
+        }
+
         /// <summary>
         /// Gets all keys. 
         /// </summary>        

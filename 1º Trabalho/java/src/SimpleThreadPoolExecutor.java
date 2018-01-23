@@ -171,7 +171,7 @@ public class SimpleThreadPoolExecutor {
         private Runnable command;
         private Condition waitThread;
         public boolean ready;
-        private long timeLiving = TimeUnit.MILLISECONDS.toNanos(keepAliveTime);
+        private long timeLiving = keepAliveTime;
 
         public void setCommand(Runnable command){
             this.command = command;
@@ -219,16 +219,19 @@ public class SimpleThreadPoolExecutor {
 
                 ready = false;
                 threads.add(this);
+                long time = Timeouts.start(timeLiving);
+                long remaining = Timeouts.remaining(time);
                 while (true){
                     try {
-                        timeLiving = waitThread.awaitNanos(timeLiving);
+                        waitThread.await(remaining, TimeUnit.MILLISECONDS);
                     } catch (InterruptedException e) {
                         ;//ignored
                     }
                     if (ready) {
                         return true;
                     }
-                    if (Timeouts.isTimeout(timeLiving)){
+                    remaining = Timeouts.remaining(time);
+                    if (Timeouts.isTimeout(remaining)){
                         workingThreads--;
                         threads.remove(this);
                         if (workingThreads == 0 && isShuttingDown) {

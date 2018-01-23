@@ -142,6 +142,6 @@ public class LockFreeDualQueue<T> {
      * @return
      */
     public boolean isEmpty() {
-        return tail.get().request.get() == null;
+        return head.get().next.get() == null || head.get().next.get().type == NodeType.REQUEST;
     }
 }

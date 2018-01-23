@@ -20,12 +20,11 @@ namespace ServerTAP {
 
             Listener listener = new Listener(log);
             Task task = listener.Run(cancellationToken);
-            
+
             Console.WriteLine("Waiting For shutdown to be called.");
-            while (!listener.isShutdown()) ;
+            task.Wait();
 
             log.Shutdown();
-
             while (!log.isLogFinished()) ;
         }
     }

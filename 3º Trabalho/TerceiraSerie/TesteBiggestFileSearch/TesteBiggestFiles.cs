@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using BiggestFileSearch;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Threading;
 
@@ -16,9 +17,10 @@ namespace TesteBiggestFileSearch {
             string[] biggestFiles = { "D:\\rui_l\\Documentos\\Universidade\\3ºAno\\1º Semestre\\Programação Concorrente\\Trabalhos\\3º Trabalho\\testeDirectory\\SubDir1\\SubSub1\\carochinhaEight.txt", "D:\\rui_l\\Documentos\\Universidade\\3ºAno\\1º Semestre\\Programação Concorrente\\Trabalhos\\3º Trabalho\\testeDirectory\\SubDir1\\SubSub1\\SubSubSub1\\carochinhaNine.txt", "D:\\rui_l\\Documentos\\Universidade\\3ºAno\\1º Semestre\\Programação Concorrente\\Trabalhos\\3º Trabalho\\testeDirectory\\SubDir1\\SubSub2\\carochinhaTen.txt" };
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            BiggestFilesSearch biggestFilesSearch = new BiggestFilesSearch();
             Progress<Tuple<Tuple<string, long>[], long>> progress = new Progress<Tuple<Tuple<string, long>[], long>>();
 
-            Tuple<string[], long> result = BiggestFileSearch.BiggestFileSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
+            Tuple<string[], long> result = biggestFilesSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
 
             Assert.AreEqual(filesExpected, result.Item2);
 
@@ -37,11 +39,12 @@ namespace TesteBiggestFileSearch {
             int filesExpected = 17;
 
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            BiggestFilesSearch biggestFilesSearch = new BiggestFilesSearch();
             Progress<Tuple<Tuple<string, long>[], long>> progress = new Progress<Tuple<Tuple<string, long>[], long>>();
             Tuple<string[], long> result = null;
 
             Thread tryFind = new Thread(() => {
-                result = BiggestFileSearch.BiggestFileSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
+                result = biggestFilesSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
             });
 
             Thread cancel = new Thread(() => {
@@ -76,7 +79,8 @@ namespace TesteBiggestFileSearch {
             for (int i = 0; i < threads.Length; i++) {
                 int li = i;
                 threads[i] = new Thread(() => {
-                    results[li] = BiggestFileSearch.BiggestFileSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
+                    BiggestFilesSearch biggestFilesSearch = new BiggestFilesSearch();
+                    results[li] = biggestFilesSearch.GetBiggestFiles(directoryPath, 3, cancellationTokenSource.Token, progress);
                 });
             }
 
@@ -112,11 +116,13 @@ namespace TesteBiggestFileSearch {
             Tuple<string[], long> cancelResult = null;
 
             Thread threadNoCancel = new Thread(() => {
-                notCancelResult = BiggestFileSearch.BiggestFileSearch.GetBiggestFiles(directoryPath, 3, unusedcancellationTokenSource.Token, progress);
+                BiggestFilesSearch biggestFilesSearch = new BiggestFilesSearch();
+                notCancelResult = biggestFilesSearch.GetBiggestFiles(directoryPath, 3, unusedcancellationTokenSource.Token, progress);
             });
 
             Thread threadCancel = new Thread(() => {
-                cancelResult = BiggestFileSearch.BiggestFileSearch.GetBiggestFiles(directoryPath, 3, usedcancellationTokenSource.Token, progress);
+                BiggestFilesSearch biggestFilesSearch = new BiggestFilesSearch();
+                cancelResult = biggestFilesSearch.GetBiggestFiles(directoryPath, 3, usedcancellationTokenSource.Token, progress);
             });
 
             Thread cancel = new Thread(() => {
@@ -127,6 +133,7 @@ namespace TesteBiggestFileSearch {
             threadCancel.Start();
             cancel.Start();
             Thread.Sleep(10);
+            threadNoCancel.Join();
 
             Assert.IsTrue(usedcancellationTokenSource.IsCancellationRequested);
             Assert.IsFalse(unusedcancellationTokenSource.IsCancellationRequested);

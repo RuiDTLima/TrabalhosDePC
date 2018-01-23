@@ -1,17 +1,19 @@
-﻿using System;
+﻿using BiggestFileSearch;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static BiggestFileSearch.BiggestFileSearch;
 
 namespace FIleSearch {
     public partial class FileSearchForm : Form {
         private CancellationTokenSource cancelationTokenSource; // o cancellationTokenSource sobre o qual pode ser cancelada a pesquisa pelo ficheiros
         private Progress<Tuple<Tuple<string, long>[], long>> progress;  // o progress sobre o qual são feitos os Report depois de processados os ficheiros do directorio currente
+        private BiggestFilesSearch biggestFile; 
 
         public FileSearchForm() {
             InitializeComponent();
             cancelationTokenSource = new CancellationTokenSource();
+            biggestFile = new BiggestFilesSearch();
             progress = new Progress<Tuple<Tuple<string, long>[], long>>((temporaryState) => {   // callback executado devido à chamada ao método Report sobre o progress.
                 Tuple<string, long>[] temporaryBiggestFiles = temporaryState.Item1;
                 long filesEncountered = temporaryState.Item2;
@@ -20,7 +22,8 @@ namespace FIleSearch {
 
                 results.Clear();    // reinicia a lista de ficheiros apresentados
                 foreach(Tuple<string, long> file in temporaryBiggestFiles) {
-                    results.AppendText(file.Item1 + "\n");
+                    if(file != null)
+                        results.AppendText(file.Item1 + "\n");
                 }
             });
         }
@@ -39,7 +42,7 @@ namespace FIleSearch {
          *  terminar, ou seja já foram encontrados os n maiores ficheiros daquele directorio, entao deve actualizada a vista
          *  de modo a reflectir o fim dessa operação 
          */
-        private void Start_Click(object sender, EventArgs e) {
+        private async void Start_Click(object sender, EventArgs e) {
             start.Enabled = false;
             cancel.Enabled = true;
             string searchDirectory = directoryRoot.Text;
@@ -58,21 +61,28 @@ namespace FIleSearch {
 
             CancellationToken cancelationToken = cancelationTokenSource.Token;
             var backgroundTask = Task.Factory.StartNew<Tuple<string[], long>>(() =>
-                GetBiggestFiles(searchDirectory, quantityFiles, cancelationToken, progress)
+                biggestFile.GetBiggestFiles(searchDirectory, quantityFiles, cancelationToken, progress)
                 );
 
-            backgroundTask.ContinueWith((result) => {
-                if(cancelationToken.IsCancellationRequested)
-                    results.AppendText("Foi cancelada");
-                var files = result.Result;
+            await backgroundTask;
+
+            if (cancelationToken.IsCancellationRequested) {
+                results.AppendText("Foi cancelada!!!!!!!");
+                cancelationTokenSource.Dispose();
+                cancelationTokenSource = new CancellationTokenSource();
+            }
+            else {
+                var files = backgroundTask.Result;
+                filesFound.Clear();
                 filesFound.Text = files.Item2.ToString();
                 results.Clear();
-                foreach (string file in files.Item1) {
+                foreach (string file in files.Item1)
+                {
                     results.AppendText(file + "\n");
                 }
                 start.Enabled = true;
                 cancel.Enabled = false;
-            });
+            }
         }
 
         /**
